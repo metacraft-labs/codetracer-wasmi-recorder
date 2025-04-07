@@ -2,6 +2,7 @@
 
 pub use self::call::{dispatch_host_func, ResumableHostError};
 use super::{cache::CachedInstance, InstructionPtr, Stack};
+use wasmi_tracer::WasmTracer;
 use crate::{
     core::{hint, wasm, ReadAs, TrapCode, UntypedVal, WriteAs},
     engine::{
@@ -91,6 +92,9 @@ struct Executor<'engine> {
     ///
     /// [`Engine`]: crate::Engine
     code_map: &'engine CodeMap,
+
+    // debug:
+    // TODO tracer: &'engine mut WasmTracer,
 }
 
 impl<'engine> Executor<'engine> {
@@ -110,12 +114,14 @@ impl<'engine> Executor<'engine> {
         //         valid for all register indices used by the associated function body.
         let sp = unsafe { stack.values.stack_ptr_at(frame.base_offset()) };
         let ip = frame.instr_ptr();
+        
         Self {
             sp,
             ip,
             cache,
             stack,
             code_map,
+            // TODO tracer: &mut tracer, // probably were not gonna make it
         }
     }
 
@@ -124,6 +130,22 @@ impl<'engine> Executor<'engine> {
     fn execute<T>(mut self, store: &mut Store<T>) -> Result<(), Error> {
         use Instruction as Instr;
         loop {
+            // TODO: change that, just startting from somewehre
+            // Args: path : Path, instruction address(?) , step?
+            // TODO: good way to take address
+            //let address = usize::from(self.ip.get());
+            let address = 0x000000010; // should be in the main subprogram >= low_pc
+            //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
+            // TODO: make this be a field with correct lifetime
+            let mut tracer = WasmTracer::new(std::path::Path::new("/home/pesho/code/codetracer-wasmi-recorder/wasm_test.wasm")); // "<path to test.wasm>: for now hardcoded TODO pass");
+            tracer.load_local_variables(address);
+
+            // load debuginfo from gimli <- for this ip;
+            // -> find out current scope and vars in it:
+            //   some kind of mapping between them and locations
+            // -> load them with some general(for us) mechanism from wasmi's memory(?)
+            // e.g. load_expression(expr, location, ..) -> ValueRecord
+            // (to be iterated on, just an idea)
             match *self.ip.get() {
                 Instr::Trap { trap_code } => self.execute_trap(trap_code)?,
                 Instr::ConsumeFuel { block_fuel } => {

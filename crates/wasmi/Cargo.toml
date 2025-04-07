@@ -19,9 +19,16 @@ exclude = [
 ]
 
 [dependencies]
+
+# Dwarf utilities
+gimli = "0.31.1"
+object = { "version" = "0.36.7", "features" = ["elf", "wasm"] }
+memmap2 = "0.9.5"
+
 wasmi_core = { workspace = true }
 wasmi_collections = { workspace = true }
 wasmi_ir = { workspace = true }
+wasmi_tracer = { workspace = true }
 wasmparser = { workspace = true, features = ["validate", "features"] }
 wat = { workspace = true, optional = true }
 spin = { version = "0.9", default-features = false, features = [
