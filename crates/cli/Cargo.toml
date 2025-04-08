@@ -16,6 +16,7 @@ exclude.workspace = true
 [dependencies]
 wasmi = { workspace = true, features = ["wat"] }
 wasmi_wasi = { workspace = true }
+wasmi_tracer = { workspace = true }
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 

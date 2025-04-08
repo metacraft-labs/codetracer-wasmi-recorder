@@ -10,6 +10,7 @@ use crate::{
     WasmResults,
 };
 use core::{fmt, marker::PhantomData, mem::replace, ops::Deref};
+use wasmi_tracer::WasmTracer;
 
 /// Returned by [`Engine`] methods for calling a function in a resumable way.
 ///
@@ -212,6 +213,7 @@ impl ResumableInvocation {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracer: &mut WasmTracer,
     ) -> Result<ResumableCall, Error> {
         self.engine
             .resolve_func_type(self.host_func().ty_dedup(ctx.as_context()), |func_type| {
@@ -225,7 +227,7 @@ impl ResumableInvocation {
             })?;
         self.engine
             .clone()
-            .resume_func(ctx.as_context_mut(), self, inputs, outputs)
+            .resume_func(ctx.as_context_mut(), self, inputs, outputs, tracer)
             .map(ResumableCall::new)
     }
 }
@@ -288,6 +290,7 @@ impl<Results> TypedResumableInvocation<Results> {
         self,
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
+        tracer: &mut WasmTracer,
     ) -> Result<TypedResumableCall<Results>, Error>
     where
         Results: WasmResults,
@@ -303,6 +306,7 @@ impl<Results> TypedResumableInvocation<Results> {
                 self.invocation,
                 inputs,
                 <CallResultsTuple<Results>>::default(),
+                tracer,
             )
             .map(TypedResumableCall::new)
     }

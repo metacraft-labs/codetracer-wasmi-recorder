@@ -8,6 +8,7 @@ use crate::{
     TypedResumableCall,
 };
 use core::{fmt, fmt::Debug, marker::PhantomData};
+use wasmi_tracer::WasmTracer;
 
 /// A typed [`Func`] instance.
 ///
@@ -93,13 +94,14 @@ where
     /// # Errors
     ///
     /// If the execution of the called Wasm function traps.
-    pub fn call(&self, mut ctx: impl AsContextMut, params: Params) -> Result<Results, Error> {
+    pub fn call(&self, mut ctx: impl AsContextMut, params: Params, tracer: &mut WasmTracer) -> Result<Results, Error> {
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
         ctx.as_context().store.engine().clone().execute_func(
             ctx.as_context_mut(),
             &self.func,
             params,
             <CallResultsTuple<Results>>::default(),
+            tracer,
         )
     }
 
@@ -122,6 +124,7 @@ where
         &self,
         mut ctx: impl AsContextMut,
         params: Params,
+        tracer: &mut WasmTracer,
     ) -> Result<TypedResumableCall<Results>, Error> {
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
         ctx.as_context()
@@ -133,6 +136,7 @@ where
                 &self.func,
                 params,
                 <CallResultsTuple<Results>>::default(),
+                tracer,
             )
             .map(TypedResumableCall::new)
     }

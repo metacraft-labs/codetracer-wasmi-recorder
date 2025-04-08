@@ -25,6 +25,7 @@ use super::{
 use crate::{collections::arena::ArenaIndex, engine::ResumableCall, Engine, Error, Val};
 use alloc::{boxed::Box, sync::Arc};
 use core::{fmt, fmt::Debug, num::NonZeroU32};
+use wasmi_tracer::WasmTracer;
 
 /// A raw index to a function entity.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -415,6 +416,7 @@ impl Func {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracer: &mut WasmTracer,
     ) -> Result<(), Error> {
         self.verify_and_prepare_inputs_outputs(ctx.as_context(), inputs, outputs)?;
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
@@ -423,6 +425,7 @@ impl Func {
             self,
             inputs,
             outputs,
+            tracer,
         )?;
         Ok(())
     }
@@ -455,6 +458,7 @@ impl Func {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracer: &mut WasmTracer,
     ) -> Result<ResumableCall, Error> {
         self.verify_and_prepare_inputs_outputs(ctx.as_context(), inputs, outputs)?;
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
@@ -462,7 +466,7 @@ impl Func {
             .store
             .engine()
             .clone()
-            .execute_func_resumable(ctx.as_context_mut(), self, inputs, outputs)
+            .execute_func_resumable(ctx.as_context_mut(), self, inputs, outputs, tracer)
             .map(ResumableCall::new)
     }
 

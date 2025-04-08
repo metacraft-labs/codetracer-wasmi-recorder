@@ -22,6 +22,8 @@ use crate::engine::StackLimits;
 
 use super::code_map::CodeMap;
 
+use wasmi_tracer::WasmTracer;
+
 mod cache;
 mod instr_ptr;
 mod instrs;
@@ -41,13 +43,14 @@ impl EngineInner {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer,
     ) -> Result<<Results as CallResults>::Results, Error>
     where
         Results: CallResults,
     {
         let mut stack = self.stacks.lock().reuse_or_new();
         let results = EngineExecutor::new(&self.code_map, &mut stack)
-            .execute_root_func(ctx.store, func, params, results)
+            .execute_root_func(ctx.store, func, params, results, tracer)
             .map_err(|error| match error.into_resumable() {
                 Ok(error) => error.into_error(),
                 Err(error) => error,
@@ -69,6 +72,7 @@ impl EngineInner {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer,
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
@@ -76,7 +80,7 @@ impl EngineInner {
         let store = ctx.store;
         let mut stack = self.stacks.lock().reuse_or_new();
         let results = EngineExecutor::new(&self.code_map, &mut stack)
-            .execute_root_func(store, func, params, results);
+            .execute_root_func(store, func, params, results, tracer);
         match results {
             Ok(results) => {
                 self.stacks.lock().recycle(stack);
@@ -117,6 +121,7 @@ impl EngineInner {
         mut invocation: ResumableInvocation,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer,
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
@@ -129,6 +134,7 @@ impl EngineInner {
             params,
             caller_results,
             results,
+            tracer,
         );
         match results {
             Ok(results) => {
@@ -158,6 +164,8 @@ pub struct EngineExecutor<'engine> {
     code_map: &'engine CodeMap,
     /// The value and call stacks.
     stack: &'engine mut Stack,
+    // wasm tracer
+    // tracer: &'engine mut WasmTracer,
 }
 
 /// Convenience function that does nothing to its `&mut` parameter.
@@ -185,6 +193,7 @@ impl<'engine> EngineExecutor<'engine> {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer
     ) -> Result<<Results as CallResults>::Results, Error>
     where
         Results: CallResults,
@@ -217,7 +226,7 @@ impl<'engine> EngineExecutor<'engine> {
                     Some(instance),
                 )?;
                 store.invoke_call_hook(CallHook::CallingWasm)?;
-                self.execute_func(store)?;
+                self.execute_func(store, tracer)?;
                 store.invoke_call_hook(CallHook::ReturningFromWasm)?;
             }
             FuncEntity::Host(host_func) => {
@@ -259,6 +268,7 @@ impl<'engine> EngineExecutor<'engine> {
         params: impl CallParams,
         caller_results: RegSpan,
         results: Results,
+        tracer: &mut WasmTracer
     ) -> Result<<Results as CallResults>::Results, Error>
     where
         Results: CallResults,
@@ -274,7 +284,7 @@ impl<'engine> EngineExecutor<'engine> {
         for (result, param) in caller_results.iter_sized(len_params).zip(call_params) {
             unsafe { caller_sp.set(result, param) };
         }
-        self.execute_func(store)?;
+        self.execute_func(store, tracer)?;
         let results = self.write_results_back(results);
         Ok(results)
     }
@@ -285,8 +295,8 @@ impl<'engine> EngineExecutor<'engine> {
     ///
     /// When encountering a Wasm or host trap during execution.
     #[inline(always)]
-    fn execute_func<T>(&mut self, store: &mut Store<T>) -> Result<(), Error> {
-        execute_instrs(store, self.stack, self.code_map)
+    fn execute_func<T>(&mut self, store: &mut Store<T>, tracer: &mut WasmTracer) -> Result<(), Error> {
+        execute_instrs(store, self.stack, self.code_map, tracer)
     }
 
     /// Convenience forwarder to [`dispatch_host_func`].

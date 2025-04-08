@@ -723,6 +723,7 @@ dependencies = [
  "wasm-smith",
  "wasmi 0.44.0",
  "wasmi_fuzz",
+ "wasmi_tracer",
  "wasmprinter 0.227.1",
 ]
 
@@ -1765,6 +1766,7 @@ version = "0.44.0"
 dependencies = [
  "wasmi 0.44.0",
  "wasmi_c_api_macros",
+ "wasmi_tracer",
 ]
 
 [[package]]
@@ -1783,6 +1785,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "wasmi 0.44.0",
+ "wasmi_tracer",
  "wasmi_wasi",
 ]
 
@@ -1854,6 +1857,7 @@ version = "0.44.0"
 dependencies = [
  "anyhow",
  "wasmi 0.44.0",
+ "wasmi_tracer",
  "wast 227.0.1",
 ]
 

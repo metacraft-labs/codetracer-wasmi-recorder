@@ -23,6 +23,7 @@ use crate::{
     WasmResults,
 };
 use alloc::{boxed::Box, sync::Arc};
+use wasmi_tracer::WasmTracer;
 
 mod builder;
 mod exports;
@@ -186,9 +187,10 @@ impl Instance {
         mut store: impl AsContextMut,
         module: &Module,
         imports: &[Extern],
+        tracer: &mut WasmTracer,
     ) -> Result<Instance, Error> {
         let instance_pre = Module::instantiate(module, &mut store, imports.iter().cloned())?;
-        let instance = instance_pre.start(&mut store)?;
+        let instance = instance_pre.start(&mut store, tracer)?;
         Ok(instance)
     }
 

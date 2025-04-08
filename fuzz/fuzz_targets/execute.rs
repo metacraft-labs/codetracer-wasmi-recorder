@@ -21,6 +21,7 @@ use wasmi_fuzz::{
     FuzzValType,
     FuzzWasmiConfig,
 };
+use wasmi_tracer::WasmTracer;
 
 #[derive(Debug)]
 pub struct FuzzInput<'a> {
@@ -111,7 +112,8 @@ fuzz_target!(|input: FuzzInput| {
         let func_ty = func.ty(&store);
         fill_values(&mut params, func_ty.params(), &mut u);
         fill_values(&mut results, func_ty.results(), &mut u);
-        _ = func.call(&mut store, &params, &mut results);
+        let mut tracer = WasmTracer::no_tracing();
+        _ = func.call(&mut store, &params, &mut results, &mut tracer);
     }
 });
 

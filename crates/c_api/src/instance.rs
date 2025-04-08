@@ -8,6 +8,7 @@ use crate::{
 };
 use alloc::boxed::Box;
 use wasmi::Instance;
+use wasmi_tracer::WasmTracer;
 
 /// A Wasm instance.
 ///
@@ -56,7 +57,8 @@ pub unsafe extern "C" fn wasm_instance_new(
         .iter()
         .filter_map(|import| import.as_ref().map(|i| i.which))
         .collect::<Box<[_]>>();
-    match Instance::new(store.inner.context_mut(), &wasm_module.inner, &imports) {
+    let mut tracer = WasmTracer::no_tracing();
+    match Instance::new(store.inner.context_mut(), &wasm_module.inner, &imports, &mut tracer) {
         Ok(instance) => Some(Box::new(wasm_instance_t::new(
             store.inner.clone(),
             instance,

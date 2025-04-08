@@ -16,4 +16,5 @@ exclude.workspace = true
 [dependencies]
 wasmi = { workspace = true, features = ["std", "simd"] }
 wast = { workspace = true, features = ["wasm-module"] }
+wasmi_tracer = { workspace = true }
 anyhow = "1.0"

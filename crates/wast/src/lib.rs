@@ -30,6 +30,7 @@ use wast::{
     WastRet,
     Wat,
 };
+use wasmi_tracer::WasmTracer;
 
 /// The configuration for the test runner.
 #[derive(Debug, Copy, Clone)]
@@ -321,8 +322,9 @@ impl WastRunner {
     ///
     /// Also sets the `current` instance to the `module` instance.
     fn module(&mut self, name: Option<&str>, module: &Module) -> Result<()> {
+        let mut tracer = WasmTracer::no_tracing();
         let instance = match self.linker.instantiate(&mut self.store, module) {
-            Ok(pre_instance) => pre_instance.start(&mut self.store)?,
+            Ok(pre_instance) => pre_instance.start(&mut self.store, &mut tracer)?,
             Err(error) => bail!("failed to instantiate module: {error}"),
         };
         if let Some(name) = name {
@@ -440,7 +442,8 @@ impl WastRunner {
             WastExecute::Wat(Wat::Module(module)) => {
                 let (_name, module) = self.module_definition(QuoteWat::Wat(Wat::Module(module)))?;
                 let instance_pre = self.linker.instantiate(&mut self.store, &module)?;
-                instance_pre.start(&mut self.store)?;
+                let mut tracer = WasmTracer::no_tracing();
+                instance_pre.start(&mut self.store, &mut tracer)?;
                 Ok(())
             }
             WastExecute::Get {
@@ -541,7 +544,8 @@ impl WastRunner {
         let len_results = func.ty(&self.store).results().len();
         self.results.clear();
         self.results.resize(len_results, Val::I32(0));
-        func.call(&mut self.store, &self.params, &mut self.results[..])?;
+        let mut tracer = WasmTracer::no_tracing();
+        func.call(&mut self.store, &self.params, &mut self.results[..], &mut tracer)?;
         Ok(())
     }
 

@@ -1,5 +1,6 @@
 use super::InstantiationError;
 use crate::{module::FuncIdx, AsContextMut, Error, Instance, InstanceEntityBuilder};
+use wasmi_tracer::WasmTracer;
 
 /// A partially instantiated [`Instance`] where the `start` function has not yet been executed.
 ///
@@ -40,7 +41,7 @@ impl InstancePre {
     /// # Panics
     ///
     /// If the `start` function is invalid albeit successful validation.
-    pub fn start(self, mut context: impl AsContextMut) -> Result<Instance, Error> {
+    pub fn start(self, mut context: impl AsContextMut, tracer: &mut WasmTracer) -> Result<Instance, Error> {
         let opt_start_index = self.start_fn();
         context
             .as_context_mut()
@@ -54,7 +55,7 @@ impl InstancePre {
                 .unwrap_or_else(|| {
                     panic!("encountered invalid start function after validation: {start_index}")
                 });
-            start_func.call(context.as_context_mut(), &[], &mut [])?
+            start_func.call(context.as_context_mut(), &[], &mut [], tracer)?
         }
         Ok(self.handle)
     }

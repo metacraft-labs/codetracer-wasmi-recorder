@@ -25,6 +25,7 @@ impl DebugInfo {
 
 #[derive(Debug, Clone)]
 pub struct WasmTracer {
+    pub tracing: bool,
     debug_info: DebugInfo,
     // TODO: tracer: runtime_tracing.Tracer,
     // etc
@@ -33,9 +34,17 @@ pub struct WasmTracer {
 // just to make it build so we can branch-out
 
 impl WasmTracer {
-    pub fn new(wasm_exe_path: &Path) -> Self {
+    pub fn new(tracing: bool, wasm_exe_path: &Path) -> Self {
         WasmTracer {
+            tracing,
             debug_info: DebugInfo::new(wasm_exe_path),
+        }
+    }
+
+    pub fn no_tracing() -> Self {
+        WasmTracer {
+            tracing: false,
+            debug_info: DebugInfo::new(&Path::new("")),
         }
     }
 
