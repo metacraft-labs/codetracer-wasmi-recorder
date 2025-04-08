@@ -46,7 +46,7 @@ impl WasmTracer {
     }
 
     pub fn load_local_variables(&mut self, address: usize) { // -> ???
-        println!("load_local_variables {address}");
+        // println!("load_local_variables {address}");
         // e.g. here we might call something like
         // some kind of check if we already have the info for the current context
         // let cached = TODO;
@@ -58,7 +58,7 @@ impl WasmTracer {
             self.info.push(format!("{}", self.index));
             self.index += 1;
         }
-        println!("{:?}", self.info);
+        // println!("{:?}", self.info);
     }
 }
 

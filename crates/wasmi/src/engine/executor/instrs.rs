@@ -140,7 +140,7 @@ impl<'engine> Executor<'engine> {
                 // TODO: good way to take address
                 //let address = usize::from(self.ip.get());
                 let address = 0x000000010; // should be in the main subprogram >= low_pc
-                //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
+                std::println!("address of {:?}: TODO", *self.ip.get());
                 // TODO: make this be a field with correct lifetime
                 tracer.load_local_variables(address);
 
