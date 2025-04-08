@@ -129,24 +129,29 @@ impl<'engine> Executor<'engine> {
     #[inline(always)]
     fn execute<T>(mut self, store: &mut Store<T>) -> Result<(), Error> {
         use Instruction as Instr;
+        let tracing = std::env::var("CODETRACER_WASMI_TRACING").unwrap_or(std::string::String::from("")) == "1";
+        let env_wasm_path = std::env::var("CODETRACER_WASM_PATH").unwrap_or(std::string::String::from(""));
+        let wasm_path = std::path::Path::new(&env_wasm_path);
+        let mut tracer = WasmTracer::new(tracing, &wasm_path);
         loop {
-            // TODO: change that, just startting from somewehre
-            // Args: path : Path, instruction address(?) , step?
-            // TODO: good way to take address
-            //let address = usize::from(self.ip.get());
-            let address = 0x000000010; // should be in the main subprogram >= low_pc
-            //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
-            // TODO: make this be a field with correct lifetime
-            let mut tracer = WasmTracer::new(std::path::Path::new("/home/pesho/code/codetracer-wasmi-recorder/wasm_test.wasm")); // "<path to test.wasm>: for now hardcoded TODO pass");
-            tracer.load_local_variables(address);
+            if tracer.tracing {
+                // TODO: change that, just startting from somewehre
+                // Args: path : Path, instruction address(?) , step?
+                // TODO: good way to take address
+                //let address = usize::from(self.ip.get());
+                let address = 0x000000010; // should be in the main subprogram >= low_pc
+                //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
+                // TODO: make this be a field with correct lifetime
+                tracer.load_local_variables(address);
 
-            // load debuginfo from gimli <- for this ip;
-            // -> find out current scope and vars in it:
-            //   some kind of mapping between them and locations
-            // -> load them with some general(for us) mechanism from wasmi's memory(?)
-            // e.g. load_expression(expr, location, ..) -> ValueRecord
-            // (to be iterated on, just an idea)
-            match *self.ip.get() {
+                // load debuginfo from gimli <- for this ip;
+                // -> find out current scope and vars in it:
+                //   some kind of mapping between them and locations
+                // -> load them with some general(for us) mechanism from wasmi's memory(?)
+                // e.g. load_expression(expr, location, ..) -> ValueRecord
+                // (to be iterated on, just an idea)
+            }
+                match *self.ip.get() {
                 Instr::Trap { trap_code } => self.execute_trap(trap_code)?,
                 Instr::ConsumeFuel { block_fuel } => {
                     self.execute_consume_fuel(&mut store.inner, block_fuel)?
