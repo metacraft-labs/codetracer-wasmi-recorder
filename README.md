@@ -1,3 +1,17 @@
+# wasmi recorder
+
+A patched version of wasmi: a webassembly(wasm) interpreter. Records traces for [CodeTracer](https://github.com/metacraft-labs/codetracer)
+
+Currently the goal is to support stylus blockchain programs written in Rust or C, which target WASM, however it works in a more general way, that should be usable
+for other usecases and languages targetting WASM.
+
+
+### Original README below:
+
+--------------------------
+
+
+
 
 | Continuous Integration |     Test Coverage    |  Documentation   |      Crates.io       |
 |:----------------------:|:--------------------:|:----------------:|:--------------------:|
@@ -14,6 +28,8 @@
 
 [license-mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-apache-badge]: https://img.shields.io/badge/license-APACHE-orange.svg
+
+
 
 # Wasmi - WebAssembly (Wasm) Interpreter
 
