@@ -9,6 +9,7 @@ use crate::{
 use alloc::{boxed::Box, string::String, vec, vec::Vec};
 use core::{any::Any, ffi::c_void, hint, iter, ptr, str};
 use wasmi::{Error, Extern, Func, FuncRef, Val};
+use wasmi_tracer::WasmTracer;
 
 #[cfg(feature = "std")]
 use core::panic::AssertUnwindSafe;
@@ -210,7 +211,8 @@ pub unsafe extern "C" fn wasm_func_call(
             // can. As a result we catch panics here and transform them to traps to
             // allow the caller to have any insulation possible against Rust panics.
             std::panic::catch_unwind(AssertUnwindSafe(|| {
-                f.call(func.inner.store.context_mut(), wt_params, wt_results)
+                let mut tracer = WasmTracer::no_tracing();
+                f.call(func.inner.store.context_mut(), wt_params, wt_results, &mut tracer)
             }))
         }
         #[cfg(not(feature = "std"))]

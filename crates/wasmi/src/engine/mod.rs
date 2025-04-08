@@ -59,6 +59,7 @@ use alloc::{
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::{Mutex, RwLock};
 use wasmparser::{FuncToValidate, FuncValidatorAllocations, ValidatorResources};
+use wasmi_tracer::WasmTracer;
 
 #[cfg(doc)]
 use crate::Store;
@@ -295,11 +296,12 @@ impl Engine {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer
     ) -> Result<<Results as CallResults>::Results, Error>
     where
         Results: CallResults,
     {
-        self.inner.execute_func(ctx, func, params, results)
+        self.inner.execute_func(ctx, func, params, results, tracer)
     }
 
     /// Executes the given [`Func`] resumably with parameters `params` and returns.
@@ -331,12 +333,13 @@ impl Engine {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
     {
         self.inner
-            .execute_func_resumable(ctx, func, params, results)
+            .execute_func_resumable(ctx, func, params, results, tracer)
     }
 
     /// Resumes the given `invocation` given the `params`.
@@ -368,11 +371,12 @@ impl Engine {
         invocation: ResumableInvocation,
         params: impl CallParams,
         results: Results,
+        tracer: &mut WasmTracer
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
     {
-        self.inner.resume_func(ctx, invocation, params, results)
+        self.inner.resume_func(ctx, invocation, params, results, tracer)
     }
 
     /// Recycles the given [`Stack`] for reuse in the [`Engine`].

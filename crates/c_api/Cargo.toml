@@ -17,6 +17,7 @@ links = "wasmi_c_api"
 [dependencies]
 wasmi = { workspace = true }
 wasmi_c_api_macros = { workspace = true }
+wasmi_tracer = { workspace = true }
 
 [lib]
 name = "wasmi_c_api"

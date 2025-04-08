@@ -27,6 +27,7 @@ pub struct Config {
     compilation_mode: CompilationMode,
     /// Enforced limits for Wasm module parsing and compilation.
     limits: EnforcedLimits,
+    // tracing: bool,
 }
 
 /// Type storing all kinds of fuel costs of instructions.

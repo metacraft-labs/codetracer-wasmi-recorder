@@ -7,6 +7,7 @@ use clap::Parser;
 use context::Context;
 use std::{path::Path, process};
 use wasmi::{Func, FuncType, Val};
+use wasmi_tracer::WasmTracer;
 
 mod args;
 mod context;
@@ -20,7 +21,9 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let wasm_file = args.wasm_file();
     let wasi_ctx = args.wasi_context()?;
-    let mut ctx = Context::new(wasm_file, wasi_ctx, args.fuel(), args.compilation_mode())?;
+    let wasm_file_full_path = std::fs::canonicalize(&wasm_file)?;
+    let mut tracer = WasmTracer::new(args.tracing(), &wasm_file_full_path);
+    let mut ctx = Context::new(wasm_file, wasi_ctx, args.fuel(), args.compilation_mode(), &mut tracer)?;
     let (func_name, func) = get_invoked_func(&args, &ctx)?;
     let ty = func.ty(ctx.store());
     let func_args = utils::decode_func_args(&ty, args.func_args())?;
@@ -39,7 +42,7 @@ fn main() -> Result<()> {
         )
     }
 
-    match func.call(ctx.store_mut(), &func_args, &mut func_results) {
+    match func.call(ctx.store_mut(), &func_args, &mut func_results, &mut tracer) {
         Ok(()) => {
             print_remaining_fuel(&args, &ctx);
             print_pretty_results(&func_results);

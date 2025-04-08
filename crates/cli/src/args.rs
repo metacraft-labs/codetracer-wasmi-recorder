@@ -99,6 +99,12 @@ pub struct Args {
     /// Arguments given to the Wasm module or the invoked function.
     #[clap(value_name = "ARGS")]
     func_args: Vec<String>,
+
+    #[clap(
+        long = "trace",
+        default_value_t = false,
+    )]
+    tracing: bool,
 }
 
 /// The chosen Wasmi compilation mode.
@@ -149,6 +155,11 @@ impl Args {
     /// Returns `true` if verbose messaging is enabled.
     pub fn verbose(&self) -> bool {
         self.verbose
+    }
+
+    /// Returns `true` if tracing is enabled.
+    pub fn tracing(&self) -> bool {
+        self.tracing
     }
 
     /// Pre-opens all directories given in `--dir` and returns them for use by the [`WasiCtx`].
