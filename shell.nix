@@ -26,7 +26,15 @@ mkShell {
     emscripten
     binaryen
     llvm
+    just
     rust-analyzer
+
+    figlet
   ];
 
+  shellHook = ''
+    export EM_CACHE=/tmp/emcc/
+
+    figlet "welcome to wasmi recorder"
+  '';
 }

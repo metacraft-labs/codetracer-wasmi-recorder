@@ -10,7 +10,8 @@ members = [
     "crates/ir",
     "crates/fuzz",
     "crates/wast",
-    "fuzz", "wasm-test", "crates/tracer",
+    "fuzz", "crates/tracer",
+    # "wasm-test",
 ]
 exclude = []
 resolver = "2"
