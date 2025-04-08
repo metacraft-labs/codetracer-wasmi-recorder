@@ -111,7 +111,7 @@ fuzz_target!(|input: FuzzInput| {
         let func_ty = func.ty(&store);
         fill_values(&mut params, func_ty.params(), &mut u);
         fill_values(&mut results, func_ty.results(), &mut u);
-        _ = func.call(&mut store, &params, &mut results);
+        _ = func.call(&mut store, &params, &mut results, false);
     }
 });
 

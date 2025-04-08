@@ -40,7 +40,7 @@ impl InstancePre {
     /// # Panics
     ///
     /// If the `start` function is invalid albeit successful validation.
-    pub fn start(self, mut context: impl AsContextMut) -> Result<Instance, Error> {
+    pub fn start(self, mut context: impl AsContextMut, tracing: bool) -> Result<Instance, Error> {
         let opt_start_index = self.start_fn();
         context
             .as_context_mut()
@@ -54,7 +54,7 @@ impl InstancePre {
                 .unwrap_or_else(|| {
                     panic!("encountered invalid start function after validation: {start_index}")
                 });
-            start_func.call(context.as_context_mut(), &[], &mut [])?
+            start_func.call(context.as_context_mut(), &[], &mut [], tracing)?
         }
         Ok(self.handle)
     }

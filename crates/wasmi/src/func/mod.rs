@@ -415,6 +415,7 @@ impl Func {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracing: bool,
     ) -> Result<(), Error> {
         self.verify_and_prepare_inputs_outputs(ctx.as_context(), inputs, outputs)?;
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
@@ -423,6 +424,7 @@ impl Func {
             self,
             inputs,
             outputs,
+            tracing,
         )?;
         Ok(())
     }
@@ -455,6 +457,7 @@ impl Func {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracing: bool,
     ) -> Result<ResumableCall, Error> {
         self.verify_and_prepare_inputs_outputs(ctx.as_context(), inputs, outputs)?;
         // Note: Cloning an [`Engine`] is intentionally a cheap operation.
@@ -462,7 +465,7 @@ impl Func {
             .store
             .engine()
             .clone()
-            .execute_func_resumable(ctx.as_context_mut(), self, inputs, outputs)
+            .execute_func_resumable(ctx.as_context_mut(), self, inputs, outputs, tracing)
             .map(ResumableCall::new)
     }
 

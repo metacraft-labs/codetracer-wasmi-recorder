@@ -212,6 +212,7 @@ impl ResumableInvocation {
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
         outputs: &mut [Val],
+        tracing: bool,
     ) -> Result<ResumableCall, Error> {
         self.engine
             .resolve_func_type(self.host_func().ty_dedup(ctx.as_context()), |func_type| {
@@ -225,7 +226,7 @@ impl ResumableInvocation {
             })?;
         self.engine
             .clone()
-            .resume_func(ctx.as_context_mut(), self, inputs, outputs)
+            .resume_func(ctx.as_context_mut(), self, inputs, outputs, tracing)
             .map(ResumableCall::new)
     }
 }
@@ -288,6 +289,7 @@ impl<Results> TypedResumableInvocation<Results> {
         self,
         mut ctx: impl AsContextMut<Data = T>,
         inputs: &[Val],
+        tracing: bool,
     ) -> Result<TypedResumableCall<Results>, Error>
     where
         Results: WasmResults,
@@ -303,6 +305,7 @@ impl<Results> TypedResumableInvocation<Results> {
                 self.invocation,
                 inputs,
                 <CallResultsTuple<Results>>::default(),
+                tracing,
             )
             .map(TypedResumableCall::new)
     }

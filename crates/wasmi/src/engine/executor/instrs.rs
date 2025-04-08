@@ -71,10 +71,11 @@ pub fn execute_instrs<'engine, T>(
     store: &mut Store<T>,
     stack: &'engine mut Stack,
     code_map: &'engine CodeMap,
+    tracing: bool,
 ) -> Result<(), Error> {
     let instance = stack.calls.instance_expect();
     let cache = CachedInstance::new(&mut store.inner, instance);
-    Executor::new(stack, code_map, cache).execute(store)
+    Executor::new(stack, code_map, cache, tracing).execute(store)
 }
 
 /// An execution context for executing a Wasmi function frame.
@@ -95,6 +96,7 @@ struct Executor<'engine> {
 
     // debug:
     // TODO tracer: &'engine mut WasmTracer,
+    tracing: bool,
 }
 
 impl<'engine> Executor<'engine> {
@@ -104,6 +106,7 @@ impl<'engine> Executor<'engine> {
         stack: &'engine mut Stack,
         code_map: &'engine CodeMap,
         cache: CachedInstance,
+        tracing: bool,
     ) -> Self {
         let frame = stack
             .calls
@@ -122,6 +125,7 @@ impl<'engine> Executor<'engine> {
             stack,
             code_map,
             // TODO tracer: &mut tracer, // probably were not gonna make it
+            tracing,
         }
     }
 
@@ -130,16 +134,17 @@ impl<'engine> Executor<'engine> {
     fn execute<T>(mut self, store: &mut Store<T>) -> Result<(), Error> {
         use Instruction as Instr;
         loop {
-            // TODO: change that, just startting from somewehre
-            // Args: path : Path, instruction address(?) , step?
-            // TODO: good way to take address
-            //let address = usize::from(self.ip.get());
-            let address = 0x000000010; // should be in the main subprogram >= low_pc
-            //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
-            // TODO: make this be a field with correct lifetime
-            let mut tracer = WasmTracer::new(std::path::Path::new("/home/pesho/code/codetracer-wasmi-recorder/wasm_test.wasm")); // "<path to test.wasm>: for now hardcoded TODO pass");
-            tracer.load_local_variables(address);
-
+            if self.tracing {
+                // TODO: change that, just startting from somewehre
+                // Args: path : Path, instruction address(?) , step?
+                // TODO: good way to take address
+                //let address = usize::from(self.ip.get());
+                let address = 0x000000010; // should be in the main subprogram >= low_pc
+                //std::println!("address of {:?}: {:?}", *self.ip.get(), address);
+                // TODO: make this be a field with correct lifetime
+                let mut tracer = WasmTracer::new(std::path::Path::new("/home/pesho/code/codetracer-wasmi-recorder/wasm_test.wasm")); // "<path to test.wasm>: for now hardcoded TODO pass");
+                tracer.load_local_variables(address);
+            }
             // load debuginfo from gimli <- for this ip;
             // -> find out current scope and vars in it:
             //   some kind of mapping between them and locations

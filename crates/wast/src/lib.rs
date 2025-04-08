@@ -322,7 +322,7 @@ impl WastRunner {
     /// Also sets the `current` instance to the `module` instance.
     fn module(&mut self, name: Option<&str>, module: &Module) -> Result<()> {
         let instance = match self.linker.instantiate(&mut self.store, module) {
-            Ok(pre_instance) => pre_instance.start(&mut self.store)?,
+            Ok(pre_instance) => pre_instance.start(&mut self.store, false)?,
             Err(error) => bail!("failed to instantiate module: {error}"),
         };
         if let Some(name) = name {
@@ -440,7 +440,7 @@ impl WastRunner {
             WastExecute::Wat(Wat::Module(module)) => {
                 let (_name, module) = self.module_definition(QuoteWat::Wat(Wat::Module(module)))?;
                 let instance_pre = self.linker.instantiate(&mut self.store, &module)?;
-                instance_pre.start(&mut self.store)?;
+                instance_pre.start(&mut self.store, false)?;
                 Ok(())
             }
             WastExecute::Get {
@@ -541,7 +541,7 @@ impl WastRunner {
         let len_results = func.ty(&self.store).results().len();
         self.results.clear();
         self.results.resize(len_results, Val::I32(0));
-        func.call(&mut self.store, &self.params, &mut self.results[..])?;
+        func.call(&mut self.store, &self.params, &mut self.results[..], false)?;
         Ok(())
     }
 

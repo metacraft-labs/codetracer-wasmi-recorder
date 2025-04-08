@@ -295,11 +295,12 @@ impl Engine {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracing: bool,
     ) -> Result<<Results as CallResults>::Results, Error>
     where
         Results: CallResults,
     {
-        self.inner.execute_func(ctx, func, params, results)
+        self.inner.execute_func(ctx, func, params, results, tracing)
     }
 
     /// Executes the given [`Func`] resumably with parameters `params` and returns.
@@ -331,12 +332,13 @@ impl Engine {
         func: &Func,
         params: impl CallParams,
         results: Results,
+        tracing: bool,
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
     {
         self.inner
-            .execute_func_resumable(ctx, func, params, results)
+            .execute_func_resumable(ctx, func, params, results, tracing)
     }
 
     /// Resumes the given `invocation` given the `params`.
@@ -368,11 +370,12 @@ impl Engine {
         invocation: ResumableInvocation,
         params: impl CallParams,
         results: Results,
+        tracing: bool,
     ) -> Result<ResumableCallBase<<Results as CallResults>::Results>, Error>
     where
         Results: CallResults,
     {
-        self.inner.resume_func(ctx, invocation, params, results)
+        self.inner.resume_func(ctx, invocation, params, results, tracing)
     }
 
     /// Recycles the given [`Stack`] for reuse in the [`Engine`].

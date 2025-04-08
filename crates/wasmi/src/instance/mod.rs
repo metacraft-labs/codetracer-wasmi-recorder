@@ -186,9 +186,10 @@ impl Instance {
         mut store: impl AsContextMut,
         module: &Module,
         imports: &[Extern],
+        tracing: bool,
     ) -> Result<Instance, Error> {
         let instance_pre = Module::instantiate(module, &mut store, imports.iter().cloned())?;
-        let instance = instance_pre.start(&mut store)?;
+        let instance = instance_pre.start(&mut store, tracing)?;
         Ok(instance)
     }
 

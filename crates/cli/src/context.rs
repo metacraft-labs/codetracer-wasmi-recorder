@@ -13,6 +13,8 @@ pub struct Context {
     store: Store<WasiCtx>,
     /// The Wasm module instance to operate on.
     instance: Instance,
+    // Is the tracing enabled
+    // tracing: bool,
 }
 
 impl Context {
@@ -27,6 +29,7 @@ impl Context {
         wasi_ctx: WasiCtx,
         fuel: Option<u64>,
         compilation_mode: CompilationMode,
+        tracing: bool,
     ) -> Result<Self, Error> {
         let mut config = Config::default();
         if fuel.is_some() {
@@ -52,12 +55,13 @@ impl Context {
             .map_err(|error| anyhow!("failed to add WASI definitions to the linker: {error}"))?;
         let instance = linker
             .instantiate(&mut store, &module)
-            .and_then(|pre| pre.start(&mut store))
+            .and_then(|pre| pre.start(&mut store, tracing))
             .map_err(|error| anyhow!("failed to instantiate and start the Wasm module: {error}"))?;
         Ok(Self {
             module,
             store,
             instance,
+            // tracing,
         })
     }
 

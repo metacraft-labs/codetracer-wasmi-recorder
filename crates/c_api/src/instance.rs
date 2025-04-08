@@ -56,7 +56,7 @@ pub unsafe extern "C" fn wasm_instance_new(
         .iter()
         .filter_map(|import| import.as_ref().map(|i| i.which))
         .collect::<Box<[_]>>();
-    match Instance::new(store.inner.context_mut(), &wasm_module.inner, &imports) {
+    match Instance::new(store.inner.context_mut(), &wasm_module.inner, &imports, false) {
         Ok(instance) => Some(Box::new(wasm_instance_t::new(
             store.inner.clone(),
             instance,
