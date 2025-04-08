@@ -1,10 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::println;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
-
 // TODO
 #[derive(Debug, Clone)]
 struct DebugInfo {
@@ -25,7 +21,10 @@ impl DebugInfo {
 
 #[derive(Debug, Clone)]
 pub struct WasmTracer {
+    pub tracing: bool,
     debug_info: DebugInfo,
+    info: Vec<String>,
+    index: usize,
     // TODO: tracer: runtime_tracing.Tracer,
     // etc
 }
@@ -33,10 +32,17 @@ pub struct WasmTracer {
 // just to make it build so we can branch-out
 
 impl WasmTracer {
-    pub fn new(wasm_exe_path: &Path) -> Self {
+    pub fn new(tracing: bool, wasm_exe_path: &Path) -> Self {
         WasmTracer {
+            tracing,
             debug_info: DebugInfo::new(wasm_exe_path),
+            info: vec![],
+            index: 0,
         }
+    }
+
+    pub fn no_tracing() -> Self {
+        Self::new(false, &Path::new(""))
     }
 
     pub fn load_local_variables(&mut self, address: usize) { // -> ???
@@ -49,7 +55,10 @@ impl WasmTracer {
         if !cached {
             // TODO etc
             // load debuginfo etc
+            self.info.push(format!("{}", self.index));
+            self.index += 1;
         }
+        println!("{:?}", self.info);
     }
 }
 
@@ -68,7 +77,5 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
     }
 }
