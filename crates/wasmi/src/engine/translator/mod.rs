@@ -183,6 +183,8 @@ pub struct ValidatingFuncTranslator<T> {
     validator: FuncValidator,
     /// The chosen function translator.
     translator: T,
+    /// The offset in the Wasm binary of the beginning of the code section
+    code_section_offset: usize,
 }
 
 /// Reusable heap allocations for function validation and translation.
@@ -285,11 +287,16 @@ pub trait WasmTranslator<'parser>:
 
 impl<T> ValidatingFuncTranslator<T> {
     /// Creates a new [`ValidatingFuncTranslator`].
-    pub fn new(validator: FuncValidator, translator: T) -> Result<Self, Error> {
+    pub fn new(
+        validator: FuncValidator,
+        translator: T,
+        code_section_offset: usize,
+    ) -> Result<Self, Error> {
         Ok(Self {
             pos: 0,
             validator,
             translator,
+            code_section_offset,
         })
     }
 
@@ -374,6 +381,8 @@ macro_rules! impl_visit_operator {
         // the other impls make use of.
         fn $visit(&mut self, $arg: $argty) -> Self::Output {
             let offset = self.current_pos();
+            std::println!("mvp DWARF offset: {}", offset - self.code_section_offset);
+            // TODO: add the offset to instruction or some other data structure
             self.validate_then_translate(
                 |validator| validator.visitor(offset).$visit($arg.clone()),
                 |translator| translator.$visit($arg.clone()),
@@ -405,6 +414,8 @@ macro_rules! impl_visit_operator {
     ( @@supported $op:ident $({ $($arg:ident: $argty:ty),* })? => $visit:ident $_ann:tt $($rest:tt)* ) => {
         fn $visit(&mut self $($(,$arg: $argty)*)?) -> Self::Output {
             let offset = self.current_pos();
+            std::println!("supported DWARF offset: {}", offset - self.code_section_offset);
+            // TODO: add the offset to instruction or some other data structure
             self.validate_then_translate(
                 move |validator| validator.visitor(offset).$visit($($($arg),*)?),
                 move |translator| translator.$visit($($($arg),*)?),
@@ -416,6 +427,8 @@ macro_rules! impl_visit_operator {
         // Wildcard match arm for all the other (yet) unsupported Wasm proposals.
         fn $visit(&mut self $($(, $arg: $argty)*)?) -> Self::Output {
             let offset = self.current_pos();
+            std::println!("proposal DWARF offset: {}", offset - self.code_section_offset);
+            // TODO: add the offset to instruction or some other data structure
             self.validator.visitor(offset).$visit($($($arg),*)?).map_err(::core::convert::Into::into)
         }
         impl_visit_operator!($($rest)*);

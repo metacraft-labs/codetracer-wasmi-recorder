@@ -658,7 +658,8 @@ impl UncompiledFuncEntity {
                     features: *features,
                 };
                 let validator = func_to_validate.into_validator(allocs.1);
-                let translator = ValidatingFuncTranslator::new(validator, translator)?;
+                // TODO: verify if the zero this is correct
+                let translator = ValidatingFuncTranslator::new(validator, translator, 0)?;
                 let allocs = FuncTranslationDriver::new(0, &bytes[..], translator)?.translate(
                     |compiled_func| {
                         result.write(compiled_func);

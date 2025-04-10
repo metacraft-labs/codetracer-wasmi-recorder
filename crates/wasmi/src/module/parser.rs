@@ -487,6 +487,7 @@ impl ModuleParser {
         func_body: FunctionBody,
         bytes: &[u8],
         header: &ModuleHeader,
+        code_section_offset: usize,
     ) -> Result<(), Error> {
         let (func, engine_func) = self.next_func(header);
         let module = header.clone();
@@ -495,8 +496,15 @@ impl ModuleParser {
             Some(validator) => Some(validator.code_section_entry(&func_body)?),
             None => None,
         };
-        self.engine
-            .translate_func(func, engine_func, offset, bytes, module, func_to_validate)?;
+        self.engine.translate_func(
+            func,
+            engine_func,
+            offset,
+            bytes,
+            module,
+            func_to_validate,
+            code_section_offset,
+        )?;
         Ok(())
     }
 

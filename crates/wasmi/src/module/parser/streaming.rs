@@ -238,7 +238,8 @@ impl ModuleParser {
                             //       entry payload. Please remove this work around as soon as
                             //       such an API becomes available.
                             let bytes = func_body.as_bytes();
-                            self.process_code_entry(func_body, bytes, &header)?;
+                            // TODO: calculate code section offset
+                            self.process_code_entry(func_body, bytes, &header, 0)?;
                         }
                         _ => break,
                     }

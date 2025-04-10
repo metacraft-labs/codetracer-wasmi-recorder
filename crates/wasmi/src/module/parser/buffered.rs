@@ -154,6 +154,7 @@ impl ModuleParser {
         header: ModuleHeader,
         custom_sections: CustomSectionsBuilder,
     ) -> Result<ModuleBuilder, Error> {
+        let code_section_offset = self.parser.offset();
         loop {
             let (consumed, payload) = self.next_payload(buffer)?;
             match payload {
@@ -164,7 +165,12 @@ impl ModuleParser {
                     //       such an API becomes available.
                     Self::consume_buffer(consumed, buffer);
                     let bytes = func_body.as_bytes();
-                    self.process_code_entry(func_body, bytes, &header)?;
+                    self.process_code_entry(
+                        func_body,
+                        bytes,
+                        &header,
+                        code_section_offset as usize,
+                    )?;
                 }
                 _ => break,
             }

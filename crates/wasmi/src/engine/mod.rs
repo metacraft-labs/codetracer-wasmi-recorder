@@ -211,6 +211,7 @@ impl Engine {
         bytes: &[u8],
         module: ModuleHeader,
         func_to_validate: Option<FuncToValidate<ValidatorResources>>,
+        code_section_offset: usize,
     ) -> Result<(), Error> {
         self.inner.translate_func(
             func_index,
@@ -219,6 +220,7 @@ impl Engine {
             bytes,
             module,
             func_to_validate,
+            code_section_offset,
         )
     }
 
@@ -560,6 +562,7 @@ impl EngineInner {
         bytes: &[u8],
         module: ModuleHeader,
         func_to_validate: Option<FuncToValidate<ValidatorResources>>,
+        code_section_offset: usize,
     ) -> Result<(), Error> {
         let features = self.config().wasm_features();
         match (self.config.get_compilation_mode(), func_to_validate) {
@@ -567,7 +570,8 @@ impl EngineInner {
                 let (translation_allocs, validation_allocs) = self.get_allocs();
                 let validator = func_to_validate.into_validator(validation_allocs);
                 let translator = FuncTranslator::new(func_index, module, translation_allocs)?;
-                let translator = ValidatingFuncTranslator::new(validator, translator)?;
+                let translator =
+                    ValidatingFuncTranslator::new(validator, translator, code_section_offset)?;
                 let allocs = FuncTranslationDriver::new(offset, bytes, translator)?
                     .translate(|func_entity| self.init_func(engine_func, func_entity))?;
                 self.recycle_allocs(allocs.translation, allocs.validation);
@@ -584,7 +588,8 @@ impl EngineInner {
                 let translator =
                     LazyFuncTranslator::new_unchecked(func_index, engine_func, module, features);
                 let validator = func_to_validate.into_validator(allocs);
-                let translator = ValidatingFuncTranslator::new(validator, translator)?;
+                let translator =
+                    ValidatingFuncTranslator::new(validator, translator, code_section_offset)?;
                 let allocs = FuncTranslationDriver::new(offset, bytes, translator)?
                     .translate(|func_entity| self.init_func(engine_func, func_entity))?;
                 self.recycle_validation_allocs(allocs.validation);
