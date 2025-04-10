@@ -381,11 +381,13 @@ macro_rules! impl_visit_operator {
         // the other impls make use of.
         fn $visit(&mut self, $arg: $argty) -> Self::Output {
             let offset = self.current_pos();
+            let dwarf_addr = offset - self.code_section_offset;
             std::println!("mvp DWARF offset: {}", offset - self.code_section_offset);
+
             // TODO: add the offset to instruction or some other data structure
             self.validate_then_translate(
                 |validator| validator.visitor(offset).$visit($arg.clone()),
-                |translator| translator.$visit($arg.clone()),
+                |translator| translator.$visit(dwarf_addr, $arg.clone()),
             )
         }
         impl_visit_operator!($($rest)*);
@@ -415,10 +417,12 @@ macro_rules! impl_visit_operator {
         fn $visit(&mut self $($(,$arg: $argty)*)?) -> Self::Output {
             let offset = self.current_pos();
             std::println!("supported DWARF offset: {}", offset - self.code_section_offset);
+            let dwarf_addr = offset - self.code_section_offset;
+            // std::println!("Visit: {}", Self::$visit);
             // TODO: add the offset to instruction or some other data structure
             self.validate_then_translate(
                 move |validator| validator.visitor(offset).$visit($($($arg),*)?),
-                move |translator| translator.$visit($($($arg),*)?),
+                move |translator| translator.$visit(dwarf_addr, $($($arg),*)?),
             )
         }
         impl_visit_operator!($($rest)*);
@@ -3172,7 +3176,7 @@ trait BumpFuelConsumption {
 impl BumpFuelConsumption for Instruction {
     fn bump_fuel_consumption(&mut self, delta: u64) -> Result<(), Error> {
         match self {
-            Self::ConsumeFuel { block_fuel } => block_fuel.bump_by(delta).map_err(Into::into),
+            Self::ConsumeFuel { block_fuel, .. } => block_fuel.bump_by(delta).map_err(Into::into),
             instr => panic!("expected `Instruction::ConsumeFuel` but found: {instr:?}"),
         }
     }

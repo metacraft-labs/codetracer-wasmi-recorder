@@ -363,6 +363,7 @@ impl InstrEncoder {
         let Instruction::Copy {
             result: last_result,
             value: last_value,
+            ..
         } = *self.instrs.get(last_instr)
         else {
             // Case: last instruction was not a copy instruction, so we cannot merge anything.
@@ -590,7 +591,7 @@ impl InstrEncoder {
         fuel_info: FuelInfo,
     ) -> Result<(), Error> {
         let instr = match values {
-            [] => Instruction::Return,
+            [] => Instruction::Return { dwarf_addr: 69 },
             [TypedProvider::Register(reg)] => Instruction::return_reg(*reg),
             [TypedProvider::Const(value)] => match value.ty() {
                 ValType::I32 => Instruction::return_imm32(i32::from(*value)),
@@ -1130,7 +1131,7 @@ impl UpdateBranchOffset for Instruction {
     fn update_branch_offset(&mut self, stack: &mut ValueStack, new_offset: BranchOffset) -> Result<(), Error> {
         use Instruction as I;
         match self {
-            Instruction::Branch { offset } |
+            Instruction::Branch { offset, .. } |
             Instruction::BranchTableTarget { offset, .. } |
             Instruction::BranchTableTargetNonOverlapping { offset, .. } => {
                 offset.init(new_offset);

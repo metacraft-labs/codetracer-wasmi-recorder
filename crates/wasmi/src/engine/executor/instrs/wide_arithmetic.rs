@@ -27,7 +27,7 @@ impl Executor<'_> {
         let mut addr: InstructionPtr = self.ip;
         addr.add(1);
         match *addr.get() {
-            Instruction::Register3 { regs } => Params128 {
+            Instruction::Register3 { regs , .. } => Params128 {
                 lhs_hi: regs[0],
                 rhs_lo: regs[1],
                 rhs_hi: regs[2],

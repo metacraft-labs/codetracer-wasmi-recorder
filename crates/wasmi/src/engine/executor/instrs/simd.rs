@@ -40,7 +40,7 @@ impl Executor<'_> {
         let mut addr: InstructionPtr = self.ip;
         addr.add(1);
         match *addr.get() {
-            Instruction::Register { reg } => reg,
+            Instruction::Register { reg, .. } => reg,
             unexpected => {
                 // Safety: Wasmi translation guarantees that [`Instruction::Register`] exists.
                 unsafe {
@@ -86,7 +86,7 @@ impl Executor<'_> {
         let mut addr: InstructionPtr = self.ip;
         addr.add(1);
         match *addr.get() {
-            Instruction::Const32 { value } => value.into(),
+            Instruction::Const32 { value , .. } => value.into(),
             unexpected => {
                 // Safety: Wasmi translation guarantees that [`Instruction::Const32`] exists.
                 unsafe {
@@ -103,7 +103,7 @@ impl Executor<'_> {
         let mut addr: InstructionPtr = self.ip;
         addr.add(1);
         match *addr.get() {
-            Instruction::I64Const32 { value } => value.into(),
+            Instruction::I64Const32 { value , .. } => value.into(),
             unexpected => {
                 // Safety: Wasmi translation guarantees that [`Instruction::I64Const32`] exists.
                 unsafe {
@@ -120,7 +120,7 @@ impl Executor<'_> {
         let mut addr: InstructionPtr = self.ip;
         addr.add(1);
         match *addr.get() {
-            Instruction::F64Const32 { value } => value.into(),
+            Instruction::F64Const32 { value , .. } => value.into(),
             unexpected => {
                 // Safety: Wasmi translation guarantees that [`Instruction::F64Const32`] exists.
                 unsafe {

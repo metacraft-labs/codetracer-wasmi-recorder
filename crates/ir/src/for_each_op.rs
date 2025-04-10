@@ -30,7 +30,7 @@ macro_rules! for_each_op_grouped {
                 ///
                 /// Returns nothing.
                 #[snake_name(r#return)]
-                Return,
+                Return {},
                 /// A Wasm `return` instruction.
                 ///
                 /// # Note

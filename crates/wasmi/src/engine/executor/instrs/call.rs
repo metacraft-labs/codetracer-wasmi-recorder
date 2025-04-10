@@ -180,7 +180,7 @@ impl Executor<'_> {
     fn pull_call_indirect_params(&mut self) -> (u64, index::Table) {
         self.ip.add(1);
         match *self.ip.get() {
-            Instruction::CallIndirectParams { index, table } => {
+            Instruction::CallIndirectParams { index, table , .. } => {
                 let index: u64 = self.get_register_as(index);
                 (index, table)
             }
@@ -209,7 +209,7 @@ impl Executor<'_> {
     fn pull_call_indirect_params_imm16(&mut self) -> (u64, index::Table) {
         self.ip.add(1);
         match *self.ip.get() {
-            Instruction::CallIndirectParamsImm16 { index, table } => {
+            Instruction::CallIndirectParamsImm16 { index, table , .. } => {
                 let index: u64 = index.into();
                 (index, table)
             }
@@ -260,13 +260,13 @@ impl Executor<'_> {
             self.copy_call_params_list(uninit_params);
         }
         match self.ip.get() {
-            Instruction::Register { reg } => {
+            Instruction::Register { reg , .. } => {
                 self.copy_regs(uninit_params, array::from_ref(reg));
             }
-            Instruction::Register2 { regs } => {
+            Instruction::Register2 { regs , .. } => {
                 self.copy_regs(uninit_params, regs);
             }
-            Instruction::Register3 { regs } => {
+            Instruction::Register3 { regs , .. } => {
                 self.copy_regs(uninit_params, regs);
             }
             unexpected => {
@@ -299,7 +299,7 @@ impl Executor<'_> {
     /// last [`Instruction::RegisterList`] if any.
     #[cold]
     fn copy_call_params_list(&mut self, uninit_params: &mut FrameParams) {
-        while let Instruction::RegisterList { regs } = self.ip.get() {
+        while let Instruction::RegisterList { regs , .. } = self.ip.get() {
             self.copy_regs(uninit_params, regs);
             self.ip.add(1);
         }

@@ -20,7 +20,8 @@ macro_rules! swap_ops {
 }
 
 impl VisitSimdOperator<'_> for FuncTranslator {
-    fn visit_v128_load(&mut self, memarg: MemArg) -> Self::Output {
+
+    fn visit_v128_load(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load,
@@ -29,7 +30,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load8x8_s(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load8x8_s(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load8x8_s,
@@ -38,7 +39,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load8x8_u(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load8x8_u(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load8x8_u,
@@ -47,7 +48,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load16x4_s(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load16x4_s(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load16x4_s,
@@ -56,7 +57,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load16x4_u(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load16x4_u(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load16x4_u,
@@ -65,7 +66,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load32x2_s(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load32x2_s(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load32x2_s,
@@ -74,7 +75,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load32x2_u(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load32x2_u(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load32x2_u,
@@ -83,7 +84,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load8_splat(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load8_splat(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load8_splat,
@@ -92,7 +93,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load16_splat(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load16_splat(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load16_splat,
@@ -101,7 +102,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load32_splat(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load32_splat(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load32_splat,
@@ -110,7 +111,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load64_splat(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load64_splat(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load64_splat,
@@ -119,7 +120,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load32_zero(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load32_zero(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load32_zero,
@@ -128,7 +129,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load64_zero(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_load64_zero(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::v128_load64_zero,
@@ -137,7 +138,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_store(&mut self, memarg: MemArg) -> Self::Output {
+    fn visit_v128_store(&mut self, dwarf_addr: usize, memarg: MemArg) -> Self::Output {
         self.translate_store(
             memarg,
             Instruction::v128_store,
@@ -146,7 +147,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load8_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_load8_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_load_lane::<i8>(
             memarg,
             lane,
@@ -155,7 +156,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load16_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_load16_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_load_lane::<i16>(
             memarg,
             lane,
@@ -164,7 +165,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load32_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_load32_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_load_lane::<i32>(
             memarg,
             lane,
@@ -173,7 +174,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_load64_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_load64_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_load_lane::<i64>(
             memarg,
             lane,
@@ -182,7 +183,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_store8_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_store8_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_store_lane::<i8>(
             memarg,
             lane,
@@ -203,7 +204,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_store16_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_store16_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_store_lane::<i16>(
             memarg,
             lane,
@@ -224,7 +225,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_store32_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_store32_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_store_lane::<i32>(
             memarg,
             lane,
@@ -248,7 +249,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_store64_lane(&mut self, memarg: MemArg, lane: u8) -> Self::Output {
+    fn visit_v128_store64_lane(&mut self, dwarf_addr: usize, memarg: MemArg, lane: u8) -> Self::Output {
         self.translate_v128_store_lane::<i64>(
             memarg,
             lane,
@@ -272,14 +273,14 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_v128_const(&mut self, value: wasmparser::V128) -> Self::Output {
+    fn visit_v128_const(&mut self, dwarf_addr: usize, value: wasmparser::V128) -> Self::Output {
         bail_unreachable!(self);
         let v128 = V128::from(value.i128() as u128);
         self.alloc.stack.push_const(v128);
         Ok(())
     }
 
-    fn visit_i8x16_shuffle(&mut self, lanes: [u8; 16]) -> Self::Output {
+    fn visit_i8x16_shuffle(&mut self, dwarf_addr: usize, lanes: [u8; 16]) -> Self::Output {
         bail_unreachable!(self);
         let selector: [ImmLaneIdx32; 16] = array::from_fn(|i| {
             let Ok(lane) = ImmLaneIdx32::try_from(lanes[i]) else {
@@ -308,7 +309,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_i8x16_extract_lane_s(&mut self, lane: u8) -> Self::Output {
+    fn visit_i8x16_extract_lane_s(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<i8, _>(
             lane,
             Instruction::i8x16_extract_lane_s,
@@ -316,7 +317,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i8x16_extract_lane_u(&mut self, lane: u8) -> Self::Output {
+    fn visit_i8x16_extract_lane_u(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<u8, _>(
             lane,
             Instruction::i8x16_extract_lane_u,
@@ -324,7 +325,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i16x8_extract_lane_s(&mut self, lane: u8) -> Self::Output {
+    fn visit_i16x8_extract_lane_s(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<i16, _>(
             lane,
             Instruction::i16x8_extract_lane_s,
@@ -332,7 +333,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i16x8_extract_lane_u(&mut self, lane: u8) -> Self::Output {
+    fn visit_i16x8_extract_lane_u(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<u16, _>(
             lane,
             Instruction::i16x8_extract_lane_u,
@@ -340,7 +341,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i32x4_extract_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i32x4_extract_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<i32, _>(
             lane,
             Instruction::i32x4_extract_lane,
@@ -348,7 +349,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i64x2_extract_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i64x2_extract_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<i64, _>(
             lane,
             Instruction::i64x2_extract_lane,
@@ -356,7 +357,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_f32x4_extract_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_f32x4_extract_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<f32, _>(
             lane,
             Instruction::f32x4_extract_lane,
@@ -364,7 +365,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_f64x2_extract_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_f64x2_extract_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_extract_lane::<f64, _>(
             lane,
             Instruction::f64x2_extract_lane,
@@ -372,7 +373,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i8x16_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i8x16_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<i8>(
             lane,
             simd::i8x16_replace_lane,
@@ -386,7 +387,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i16x8_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i16x8_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<i16>(
             lane,
             simd::i16x8_replace_lane,
@@ -400,7 +401,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i32x4_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i32x4_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<i32>(
             lane,
             simd::i32x4_replace_lane,
@@ -414,7 +415,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_i64x2_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_i64x2_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<i64>(
             lane,
             simd::i64x2_replace_lane,
@@ -435,7 +436,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_f32x4_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_f32x4_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<f32>(
             lane,
             simd::f32x4_replace_lane,
@@ -449,7 +450,7 @@ impl VisitSimdOperator<'_> for FuncTranslator {
         )
     }
 
-    fn visit_f64x2_replace_lane(&mut self, lane: u8) -> Self::Output {
+    fn visit_f64x2_replace_lane(&mut self, dwarf_addr: usize, lane: u8) -> Self::Output {
         self.translate_replace_lane::<f64>(
             lane,
             simd::f64x2_replace_lane,

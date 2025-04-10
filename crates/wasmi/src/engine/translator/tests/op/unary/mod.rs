@@ -76,7 +76,7 @@ where
     let result = eval(input);
     let instr = <O as WasmTy>::return_imm_instr(&result);
     let mut testcase = TranslationTest::new(&wasm);
-    if let Instruction::ReturnReg { value } = &instr {
+    if let Instruction::ReturnReg { value, ..} = &instr {
         assert!(value.is_const());
         testcase.expect_func(ExpectedFunc::new([instr]).consts([result]));
     } else {

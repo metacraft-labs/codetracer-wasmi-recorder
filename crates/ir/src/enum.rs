@@ -55,8 +55,9 @@ macro_rules! define_enum {
                         )?
                         $(
                             $( #[$field_docs] )*
-                            $field_name: $field_ty
-                        ),*
+                            $field_name: $field_ty,
+                        )*
+                        dwarf_addr: usize
                     }
                 )?
             ),*
@@ -74,7 +75,8 @@ macro_rules! define_enum {
                     Self::$name {
                         $(
                             $( $result_name: $result_name.into(), )?
-                            $( $field_name: $field_name.into() ),*
+                            $( $field_name: $field_name.into(), )*
+                            dwarf_addr: 69
                         )?
                     }
                 }
@@ -237,7 +239,7 @@ impl Instruction {
     /// Returns back `self` if it was an incorrect [`Instruction`].
     /// This allows for a better error message to inform the user.
     pub fn filter_register_and_offset_hi(self) -> Result<(Reg, Offset64Hi), Self> {
-        if let Instruction::RegisterAndImm32 { reg, imm } = self {
+        if let Instruction::RegisterAndImm32 { reg, imm, .. } = self {
             return Ok((reg, Offset64Hi(u32::from(imm))));
         }
         Err(self)
@@ -261,7 +263,7 @@ impl Instruction {
     where
         LaneType: TryFrom<u8>,
     {
-        if let Instruction::RegisterAndImm32 { reg, imm } = self {
+        if let Instruction::RegisterAndImm32 { reg, imm, .. } = self {
             let lane_index = u32::from(imm) as u8;
             let Ok(lane) = LaneType::try_from(lane_index) else {
                 panic!("encountered out of bounds lane index: {}", lane_index)
@@ -286,7 +288,7 @@ impl Instruction {
     where
         T: From<AnyConst16>,
     {
-        if let Instruction::Imm16AndImm32 { imm16, imm32 } = self {
+        if let Instruction::Imm16AndImm32 { imm16, imm32, .. } = self {
             return Ok((T::from(imm16), Offset64Hi(u32::from(imm32))));
         }
         Err(self)
@@ -307,7 +309,7 @@ impl Instruction {
     where
         LaneType: TryFrom<u8>,
     {
-        if let Instruction::Imm16AndImm32 { imm16, imm32 } = self {
+        if let Instruction::Imm16AndImm32 { imm16, imm32, .. } = self {
             let Ok(lane) = LaneType::try_from(i16::from(imm16) as u16 as u8) else {
                 return Err(self);
             };

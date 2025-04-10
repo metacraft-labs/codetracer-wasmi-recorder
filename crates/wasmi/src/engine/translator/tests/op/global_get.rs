@@ -86,7 +86,7 @@ where
     let mut testcase = TranslationTest::new(&wasm);
     let instr = <T as WasmTy>::return_imm_instr(&value);
     match instr {
-        Instruction::ReturnReg { value: register } => {
+        Instruction::ReturnReg { value: register , .. } => {
             assert!(register.is_const());
             testcase.expect_func(ExpectedFunc::new([instr]).consts([value]));
         }

@@ -104,7 +104,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_block(&mut self, block_type: wasmparser::BlockType) -> Self::Output {
+    fn visit_block(&mut self, dwarf_addr: usize, block_type: wasmparser::BlockType) -> Self::Output {
         let block_type = BlockType::new(block_type, &self.module);
         if !self.is_reachable() {
             // We keep track of unreachable control flow frames so that we
@@ -141,7 +141,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_loop(&mut self, block_type: wasmparser::BlockType) -> Self::Output {
+    fn visit_loop(&mut self, dwarf_addr: usize, block_type: wasmparser::BlockType) -> Self::Output {
         let block_type = BlockType::new(block_type, &self.module);
         if !self.is_reachable() {
             // See `visit_block` for rational of tracking unreachable control flow.
@@ -194,7 +194,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_if(&mut self, block_type: wasmparser::BlockType) -> Self::Output {
+    fn visit_if(&mut self, dwarf_addr: usize, block_type: wasmparser::BlockType) -> Self::Output {
         let block_type = BlockType::new(block_type, &self.module);
         if !self.is_reachable() {
             // We keep track of unreachable control flow frames so that we
@@ -383,12 +383,12 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_br(&mut self, relative_depth: u32) -> Self::Output {
+    fn visit_br(&mut self, dwarf_addr: usize, relative_depth: u32) -> Self::Output {
         bail_unreachable!(self);
         self.translate_br(relative_depth)
     }
 
-    fn visit_br_if(&mut self, relative_depth: u32) -> Self::Output {
+    fn visit_br_if(&mut self, dwarf_addr: usize, relative_depth: u32) -> Self::Output {
         bail_unreachable!(self);
         let engine = self.engine().clone();
         let condition = match self.alloc.stack.pop() {
@@ -469,7 +469,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_br_table(&mut self, targets: wasmparser::BrTable<'a>) -> Self::Output {
+    fn visit_br_table(&mut self, dwarf_addr: usize, targets: wasmparser::BrTable<'a>) -> Self::Output {
         bail_unreachable!(self);
         self.translate_br_table(targets)
     }
@@ -479,7 +479,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         self.translate_return()
     }
 
-    fn visit_call(&mut self, function_index: u32) -> Self::Output {
+    fn visit_call(&mut self, dwarf_addr: usize, function_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.bump_fuel_consumption(FuelCosts::call)?;
         let func_idx = FuncIdx::from(function_index);
@@ -513,7 +513,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_call_indirect(&mut self, type_index: u32, table_index: u32) -> Self::Output {
+    fn visit_call_indirect(&mut self, dwarf_addr: usize, type_index: u32, table_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.bump_fuel_consumption(FuelCosts::call)?;
         let type_index = FuncType::from(type_index);
@@ -547,7 +547,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_return_call(&mut self, function_index: u32) -> Self::Output {
+    fn visit_return_call(&mut self, dwarf_addr: usize, function_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.bump_fuel_consumption(FuelCosts::call)?;
         let func_idx = FuncIdx::from(function_index);
@@ -581,7 +581,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_return_call_indirect(&mut self, type_index: u32, table_index: u32) -> Self::Output {
+    fn visit_return_call_indirect(&mut self, dwarf_addr: usize, type_index: u32, table_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.bump_fuel_consumption(FuelCosts::call)?;
         let type_index = FuncType::from(type_index);
@@ -625,18 +625,18 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         self.translate_select(None)
     }
 
-    fn visit_typed_select(&mut self, ty: wasmparser::ValType) -> Self::Output {
+    fn visit_typed_select(&mut self, dwarf_addr: usize, ty: wasmparser::ValType) -> Self::Output {
         let type_hint = WasmiValueType::from(ty).into_inner();
         self.translate_select(Some(type_hint))
     }
 
-    fn visit_local_get(&mut self, local_index: u32) -> Self::Output {
+    fn visit_local_get(&mut self, dwarf_addr: usize, local_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.push_local(local_index)?;
         Ok(())
     }
 
-    fn visit_local_set(&mut self, local_index: u32) -> Self::Output {
+    fn visit_local_set(&mut self, dwarf_addr: usize, local_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.gc_preservations();
         let value = self.alloc.stack.pop();
@@ -663,7 +663,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_local_tee(&mut self, local_index: u32) -> Self::Output {
+    fn visit_local_tee(&mut self, dwarf_addr: usize, local_index: u32) -> Self::Output {
         bail_unreachable!(self);
         let input = self.alloc.stack.peek();
         self.visit_local_set(local_index)?;
@@ -678,7 +678,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_global_get(&mut self, global_index: u32) -> Self::Output {
+    fn visit_global_get(&mut self, dwarf_addr: usize, global_index: u32) -> Self::Output {
         bail_unreachable!(self);
         let global_idx = module::GlobalIdx::from(global_index);
         let (global_type, init_value) = self.module.get_global(global_idx);
@@ -707,7 +707,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_global_set(&mut self, global_index: u32) -> Self::Output {
+    fn visit_global_set(&mut self, dwarf_addr: usize, global_index: u32) -> Self::Output {
         bail_unreachable!(self);
         let global = ir::index::Global::from(global_index);
         match self.alloc.stack.pop() {
@@ -748,7 +748,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         }
     }
 
-    fn visit_i32_load(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_load(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::load32,
@@ -757,7 +757,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::load64,
@@ -766,7 +766,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_f32_load(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_f32_load(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::load32,
@@ -775,7 +775,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_f64_load(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_f64_load(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::load64,
@@ -784,7 +784,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_load8_s(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_load8_s(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i32_load8_s,
@@ -793,7 +793,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_load8_u(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_load8_u(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i32_load8_u,
@@ -802,7 +802,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_load16_s(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_load16_s(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i32_load16_s,
@@ -811,7 +811,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_load16_u(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_load16_u(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i32_load16_u,
@@ -820,7 +820,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load8_s(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load8_s(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load8_s,
@@ -829,7 +829,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load8_u(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load8_u(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load8_u,
@@ -838,7 +838,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load16_s(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load16_s(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load16_s,
@@ -847,7 +847,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load16_u(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load16_u(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load16_u,
@@ -856,7 +856,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load32_s(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load32_s(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load32_s,
@@ -865,7 +865,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_load32_u(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_load32_u(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_load(
             memarg,
             Instruction::i64_load32_u,
@@ -874,7 +874,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_store(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_store(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore::<i32, i16>(
             memarg,
             Instruction::store32,
@@ -886,7 +886,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_store(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_store(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore::<i64, i16>(
             memarg,
             Instruction::store64,
@@ -898,7 +898,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_f32_store(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_f32_store(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_store(
             memarg,
             Instruction::store32,
@@ -907,7 +907,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_f64_store(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_f64_store(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_store(
             memarg,
             Instruction::store64,
@@ -916,7 +916,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_store8(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_store8(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore_wrap::<i32, i8, i8>(
             memarg,
             Instruction::i32_store8,
@@ -928,7 +928,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i32_store16(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i32_store16(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore_wrap::<i32, i16, i16>(
             memarg,
             Instruction::i32_store16,
@@ -940,7 +940,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_store8(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_store8(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore_wrap::<i64, i8, i8>(
             memarg,
             Instruction::i64_store8,
@@ -952,7 +952,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_store16(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_store16(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore_wrap::<i64, i16, i16>(
             memarg,
             Instruction::i64_store16,
@@ -964,7 +964,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_i64_store32(&mut self, memarg: wasmparser::MemArg) -> Self::Output {
+    fn visit_i64_store32(&mut self, dwarf_addr: usize, memarg: wasmparser::MemArg) -> Self::Output {
         self.translate_istore_wrap::<i64, i32, i16>(
             memarg,
             Instruction::i64_store32,
@@ -976,7 +976,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_memory_size(&mut self, mem: u32) -> Self::Output {
+    fn visit_memory_size(&mut self, dwarf_addr: usize, mem: u32) -> Self::Output {
         bail_unreachable!(self);
         let memory = index::Memory::from(mem);
         let result = self.alloc.stack.push_dynamic()?;
@@ -984,7 +984,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_memory_grow(&mut self, mem: u32) -> Self::Output {
+    fn visit_memory_grow(&mut self, dwarf_addr: usize, mem: u32) -> Self::Output {
         bail_unreachable!(self);
         let memory = index::Memory::from(mem);
         let memory_type = *self.module.get_type_of_memory(MemoryIdx::from(mem));
@@ -1016,31 +1016,31 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_i32_const(&mut self, value: i32) -> Self::Output {
+    fn visit_i32_const(&mut self, dwarf_addr: usize, value: i32) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.push_const(value);
         Ok(())
     }
 
-    fn visit_i64_const(&mut self, value: i64) -> Self::Output {
+    fn visit_i64_const(&mut self, dwarf_addr: usize, value: i64) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.push_const(value);
         Ok(())
     }
 
-    fn visit_f32_const(&mut self, value: wasmparser::Ieee32) -> Self::Output {
+    fn visit_f32_const(&mut self, dwarf_addr: usize, value: wasmparser::Ieee32) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.push_const(F32::from_bits(value.bits()));
         Ok(())
     }
 
-    fn visit_f64_const(&mut self, value: wasmparser::Ieee64) -> Self::Output {
+    fn visit_f64_const(&mut self, dwarf_addr: usize, value: wasmparser::Ieee64) -> Self::Output {
         bail_unreachable!(self);
         self.alloc.stack.push_const(F64::from_bits(value.bits()));
         Ok(())
     }
 
-    fn visit_ref_null(&mut self, hty: wasmparser::HeapType) -> Self::Output {
+    fn visit_ref_null(&mut self, dwarf_addr: usize, hty: wasmparser::HeapType) -> Self::Output {
         bail_unreachable!(self);
         let type_hint = WasmiValueType::from(hty).into_inner();
         let null = match type_hint {
@@ -1071,7 +1071,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         self.visit_i64_eqz()
     }
 
-    fn visit_ref_func(&mut self, function_index: u32) -> Self::Output {
+    fn visit_ref_func(&mut self, dwarf_addr: usize, function_index: u32) -> Self::Output {
         bail_unreachable!(self);
         let result = self.alloc.stack.push_dynamic()?;
         self.push_fueled_instr(
@@ -3053,7 +3053,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         )
     }
 
-    fn visit_memory_init(&mut self, data_index: u32, mem: u32) -> Self::Output {
+    fn visit_memory_init(&mut self, dwarf_addr: usize, data_index: u32, mem: u32) -> Self::Output {
         bail_unreachable!(self);
         let memory = index::Memory::from(mem);
         let memory_type = *self.module.get_type_of_memory(MemoryIdx::from(mem));
@@ -3097,13 +3097,13 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_data_drop(&mut self, data_index: u32) -> Self::Output {
+    fn visit_data_drop(&mut self, dwarf_addr: usize, data_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.push_fueled_instr(Instruction::data_drop(data_index), FuelCosts::entity)?;
         Ok(())
     }
 
-    fn visit_memory_copy(&mut self, dst_mem: u32, src_mem: u32) -> Self::Output {
+    fn visit_memory_copy(&mut self, dwarf_addr: usize, dst_mem: u32, src_mem: u32) -> Self::Output {
         bail_unreachable!(self);
         let dst_memory = index::Memory::from(dst_mem);
         let src_memory = index::Memory::from(src_mem);
@@ -3153,7 +3153,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_memory_fill(&mut self, mem: u32) -> Self::Output {
+    fn visit_memory_fill(&mut self, dwarf_addr: usize, mem: u32) -> Self::Output {
         bail_unreachable!(self);
         let memory = index::Memory::from(mem);
         let memory_type = *self.module.get_type_of_memory(MemoryIdx::from(mem));
@@ -3194,7 +3194,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_init(&mut self, elem_index: u32, table: u32) -> Self::Output {
+    fn visit_table_init(&mut self, dwarf_addr: usize, elem_index: u32, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let (dst, src, len) = self.alloc.stack.pop3();
         let table_type = *self.module.get_type_of_table(TableIdx::from(table));
@@ -3237,13 +3237,13 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_elem_drop(&mut self, elem_index: u32) -> Self::Output {
+    fn visit_elem_drop(&mut self, dwarf_addr: usize, elem_index: u32) -> Self::Output {
         bail_unreachable!(self);
         self.push_fueled_instr(Instruction::elem_drop(elem_index), FuelCosts::entity)?;
         Ok(())
     }
 
-    fn visit_table_copy(&mut self, dst_table: u32, src_table: u32) -> Self::Output {
+    fn visit_table_copy(&mut self, dwarf_addr: usize, dst_table: u32, src_table: u32) -> Self::Output {
         bail_unreachable!(self);
         let (dst, src, len) = self.alloc.stack.pop3();
         let dst_table_type = *self.module.get_type_of_table(TableIdx::from(dst_table));
@@ -3288,7 +3288,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_fill(&mut self, table: u32) -> Self::Output {
+    fn visit_table_fill(&mut self, dwarf_addr: usize, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let (dst, value, len) = self.alloc.stack.pop3();
         let table_type = *self.module.get_type_of_table(TableIdx::from(table));
@@ -3319,7 +3319,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_get(&mut self, table: u32) -> Self::Output {
+    fn visit_table_get(&mut self, dwarf_addr: usize, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let table_type = *self.module.get_type_of_table(TableIdx::from(table));
         let index = self.alloc.stack.pop();
@@ -3336,7 +3336,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_set(&mut self, table: u32) -> Self::Output {
+    fn visit_table_set(&mut self, dwarf_addr: usize, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let table_type = *self.module.get_type_of_table(TableIdx::from(table));
         let (index, value) = self.alloc.stack.pop2();
@@ -3356,7 +3356,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_grow(&mut self, table: u32) -> Self::Output {
+    fn visit_table_grow(&mut self, dwarf_addr: usize, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let table_type = *self.module.get_type_of_table(TableIdx::from(table));
         let (value, delta) = self.alloc.stack.pop2();
@@ -3389,7 +3389,7 @@ impl<'a> VisitOperator<'a> for FuncTranslator {
         Ok(())
     }
 
-    fn visit_table_size(&mut self, table: u32) -> Self::Output {
+    fn visit_table_size(&mut self, dwarf_addr: usize, table: u32) -> Self::Output {
         bail_unreachable!(self);
         let result = self.alloc.stack.push_dynamic()?;
         self.push_fueled_instr(Instruction::table_size(result, table), FuelCosts::entity)?;
