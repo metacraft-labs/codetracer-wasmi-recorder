@@ -19,8 +19,16 @@ wasmi_wasi = { workspace = true }
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 
+# CodeTracer trace format (path-based sibling deps; mirrors the Rust-native
+# recorders such as codetracer-polkavm-recorder, codetracer-miden-recorder,
+# codetracer-ton-recorder which embed a stack VM directly).  These crates
+# are part of the wider workspace at metacraft/codetracer-trace-format/.
+codetracer_trace_types = { path = "../../../codetracer-trace-format/codetracer_trace_types" }
+codetracer_trace_writer_nim = { path = "../../../codetracer-trace-format/codetracer_trace_writer_nim" }
+
 [dev-dependencies]
 assert_cmd = "2.0.7"
+tempfile = "3"
 
 [features]
 default = []
