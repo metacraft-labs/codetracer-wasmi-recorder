@@ -1,3 +1,4 @@
+use crate::recorder::CliTraceFormat;
 use anyhow::{Context, Error, Result};
 use clap::{Parser, ValueEnum};
 use std::{
@@ -96,6 +97,33 @@ pub struct Args {
     #[clap(long = "verbose")]
     verbose: bool,
 
+    /// Output directory for the CodeTracer trace.
+    ///
+    /// When set, the wasmi CLI records a CodeTracer trace into this
+    /// directory: a top-level call boundary at the invoked entry-point,
+    /// declared parameters staged as `arg0..argN-1`, and any wasmi runtime
+    /// trap routed through `EventLogKind::Error` with metadata
+    /// `wasmi_trap`.  The directory will be created if it does not exist.
+    ///
+    /// When unset (default), the wasmi CLI runs as a stock WebAssembly
+    /// runtime without any recorder side-effects — the same behaviour
+    /// upstream wasmi has shipped with for years.
+    #[clap(long = "trace-out", value_name = "DIR", value_hint = clap::ValueHint::DirPath)]
+    trace_out: Option<PathBuf>,
+
+    /// Output format for the CodeTracer trace.
+    ///
+    /// Defaults to `ctfs` — the canonical CodeTracer multi-stream container
+    /// consumed by the Nim `ct_reader_*` FFI and the db-backend's
+    /// `CTFSTraceReader`.  `binary` selects the legacy CBOR + Zstd format,
+    /// `binary_v0` an older variant kept for round-trip diagnostics, and
+    /// `json` the human-readable single-file form (slower; useful for
+    /// debugging).
+    ///
+    /// Has no effect unless `--trace-out` is also set.
+    #[clap(long = "trace-format", value_name = "FMT", default_value = "ctfs")]
+    trace_format: CliTraceFormat,
+
     /// Arguments given to the Wasm module or the invoked function.
     #[clap(value_name = "ARGS")]
     func_args: Vec<String>,
@@ -149,6 +177,19 @@ impl Args {
     /// Returns `true` if verbose messaging is enabled.
     pub fn verbose(&self) -> bool {
         self.verbose
+    }
+
+    /// Returns the CodeTracer trace output directory, if `--trace-out` was
+    /// given.  `None` means the recorder is disabled.
+    pub fn trace_out(&self) -> Option<&Path> {
+        self.trace_out.as_deref()
+    }
+
+    /// Returns the selected CodeTracer trace format (defaults to
+    /// [`CliTraceFormat::Ctfs`]).  Has no effect when `--trace-out` is
+    /// unset.
+    pub fn trace_format(&self) -> CliTraceFormat {
+        self.trace_format
     }
 
     /// Pre-opens all directories given in `--dir` and returns them for use by the [`WasiCtx`].

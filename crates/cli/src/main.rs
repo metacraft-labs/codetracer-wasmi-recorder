@@ -1,6 +1,7 @@
 use crate::{
     args::Args,
     display::{DisplayExportedFuncs, DisplayFuncType, DisplaySequence, DisplayValue},
+    recorder::maybe_open_recorder,
 };
 use anyhow::{anyhow, bail, Error, Result};
 use clap::Parser;
@@ -11,6 +12,7 @@ use wasmi::{Func, FuncType, Val};
 mod args;
 mod context;
 mod display;
+mod recorder;
 mod utils;
 
 #[cfg(test)]
@@ -39,13 +41,85 @@ fn main() -> Result<()> {
         )
     }
 
-    match func.call(ctx.store_mut(), &func_args, &mut func_results) {
+    // Open the CodeTracer recorder, if `--trace-out` was provided.  The
+    // recorder is `None` for the default `wasmi` invocation (stock runtime
+    // mode) and `Some(_)` for the audit / replay use case.
+    let program_name = args
+        .wasm_file()
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("<wasm>");
+    let mut recorder =
+        maybe_open_recorder(program_name, args.trace_out(), args.trace_format())?;
+
+    // If the recorder is enabled, stage the CLI-provided argv slice as
+    // canonical CTFS call args (`arg0..argN-1`) and open the top-level
+    // call frame BEFORE invoking the wasm function.  This mirrors the
+    // PolkaVM 1.55 Ecalli pre-call staging pattern (writer.arg(...) for
+    // each A0..A5, then register_call) and the Miden 1.56 stack-arg
+    // staging pattern.
+    if let Some(rec) = recorder.as_mut() {
+        rec.register_top_level_call(&func_name, &ty, &func_args);
+    }
+
+    let call_result = func.call(ctx.store_mut(), &func_args, &mut func_results);
+
+    match call_result {
         Ok(()) => {
+            // Close the call frame on the recorder side first so the .ct
+            // container is structurally well-formed even if downstream
+            // post-print logic panics.
+            if let Some(rec) = recorder.as_mut() {
+                rec.register_top_level_return(&func_results);
+            }
+            // Explicitly finish (flush + close all three trace streams)
+            // BEFORE we print anything else, so a writer-side error
+            // surfaces with a non-zero exit instead of being silently
+            // dropped in `Drop`.  `finish()` consumes the recorder; we
+            // `.take()` it out of the `Option` so the value is moved.
+            // This wiring closes the audit gap flagged in
+            // AUDIT-CTFS-2026-05.md (the previous `drop(recorder)` left
+            // the trace streams half-flushed in the ad-hoc happy path).
+            if let Some(rec) = recorder.take() {
+                rec.finish()?;
+            }
+
             print_remaining_fuel(&args, &ctx);
             print_pretty_results(&func_results);
             Ok(())
         }
         Err(error) => {
+            // Route the wasmi runtime trap through
+            // register_special_event(EventLogKind::Error, "wasmi_trap", ...)
+            // before the CLI bails out.  This mirrors EVM 1.39 / Cairo 1.50
+            // / PolkaVM 1.55 / Miden 1.56 / TON 1.57 trap routing — the
+            // canonical CTFS error channel surfaces the wasm trap on
+            // `ct/load-events` even though the process exits non-zero.
+            //
+            // Done BEFORE the i32_exit_status branch because a clean WASI
+            // exit (proc_exit) is reported as an i32_exit_status rather
+            // than a real trap; we want a recorder breadcrumb either way.
+            if let Some(rec) = recorder.as_mut() {
+                if error.i32_exit_status().is_some() {
+                    // Treat WASI proc_exit as a normal return (the wasm
+                    // ran to completion from the contract's POV).
+                    rec.register_top_level_return(&func_results);
+                } else {
+                    rec.register_trap(&error);
+                }
+            }
+            // Same finish() rationale as the success path: surface
+            // writer-side errors instead of swallowing them in `Drop`.
+            // For the WASI proc_exit branch we also need the trace to
+            // be flushed BEFORE `process::exit` (which skips destructors
+            // entirely).  This is the load-bearing reason we cannot
+            // rely on `Drop`.
+            if let Some(rec) = recorder.take() {
+                if let Err(finish_err) = rec.finish() {
+                    eprintln!("warning: failed to finalise CodeTracer trace: {finish_err:#}");
+                }
+            }
+
             if let Some(exit_code) = error.i32_exit_status() {
                 // We received an exit code from the WASI program,
                 // therefore we exit with the same exit code after
