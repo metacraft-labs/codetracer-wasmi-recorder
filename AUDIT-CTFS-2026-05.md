@@ -180,7 +180,8 @@ intra-program follow-up since both are interpreter-internal hooks.
 
 ### (g) CTFS schema match
 
-**Closed at the smoke level.**
+**Closed at the smoke level in 1.65; read-side content assertions closed
+in the follow-up commit.**
 
 The audit smoke test
 `audit_ctfs_writer_produces_trace_files` verifies the `--trace-out
@@ -193,9 +194,14 @@ multi-stream backend — without it the trace directory ends up empty
 (this was the gap that broke the first iteration of this audit and is
 now closed).
 
-Read-side end-to-end content assertions (asserting specific events
-land in the trace) remain a cross-cutting follow-up across all
-audited recorders.
+The follow-up test `audit_ctfs_reader_sees_add_call_args_and_return`
+opens the produced `.ct` container with
+`codetracer_trace_writer_nim::NimTraceReaderHandle` and asserts that
+the top-level `add` call has `arg0 = 7`, `arg1 = 35`, and return value
+`42`.  `audit_ctfs_reader_sees_trap_error_event` similarly asserts
+that a cheap `unreachable` trap is readable as an error event and that
+the trap path closes the call frame with the Nim reader's `NONE_VALUE`
+marker.
 
 ### (h) Obsolete `add_event` paths
 
@@ -262,12 +268,20 @@ recorders.
 4. **`crates/cli/Cargo.toml`**:
    * Path deps on `codetracer_trace_types` and `codetracer_trace_writer_nim`.
    * `tempfile = "3"` dev-dep (used by `tests/ctfs_audit.rs`).
+   * Follow-up: `cbor4ii` + `serde_json` dev-deps for decoding
+     `NimTraceReaderHandle` JSON payloads in read-side assertions.
 
-5. **`crates/cli/tests/ctfs_audit.rs`** — new audit-pinning suite:
+5. **`crates/cli/tests/ctfs_audit.rs`** — audit-pinning suite:
    * `audit_ctfs_help_advertises_trace_flags` — pins `--trace-out` +
      `--trace-format` + `[default: ctfs]` in `--help`.
    * `audit_ctfs_writer_produces_trace_files` — pins audit (g) at
      smoke level: trace dir non-empty after a recorded run.
+   * Follow-up: `audit_ctfs_reader_sees_add_call_args_and_return` —
+     records `ctfs_add.wat`, reads back the `.ct` container through
+     `NimTraceReaderHandle`, and asserts `add(arg0=7, arg1=35) -> 42`.
+   * Follow-up: `audit_ctfs_reader_sees_trap_error_event` — records
+     `ctfs_trap.wat`, reads back the `.ct` container, and asserts the
+     trap error event plus closed call-frame placeholder return.
    * `audit_ctfs_no_trace_out_means_no_recorder` — pins the
      no-side-effects-without-opt-in invariant.
    * `audit_ctfs_format_values_accepted` — pins all four format
@@ -277,15 +291,20 @@ recorders.
    `add(i32,i32)->i32` wasm module fixture (plus a no-op default-export
    for the no-`--invoke` path).
 
+7. **`crates/cli/tests/wats/ctfs_trap.wat`** — minimal
+   `unreachable` trap fixture for the read-side Error special-event
+   assertion.
+
 ## Verification
 
 ```
 cd /home/zahary/metacraft/codetracer-wasmi-recorder
 cargo build --release                           # clean
 AH_TEST_RESOURCE_GUARD=1 cargo test -p wasmi_cli --test ctfs_audit
-# 4 passed
+# 6 passed (after read-side assertion follow-up; 4 passed in original 1.65)
 AH_TEST_RESOURCE_GUARD=1 cargo test --release -p wasmi_cli
-# 14 passed (7 unit + 4 ctfs_audit + 3 run)
+# 16 passed after read-side assertion follow-up
+# (7 unit + 6 ctfs_audit + 3 run; 14 passed in original 1.65)
 AH_TEST_RESOURCE_GUARD=1 cargo test --release --workspace --exclude wasmi_wast
 # 1608 passed
 ```
@@ -392,12 +411,13 @@ Documented for completeness; currently flagged N/A for this audit.
 
 ### G. Read-side end-to-end content assertions
 
-The new `audit_ctfs_writer_produces_trace_files` verifies the trace
-container is produced and is non-trivially sized, but does not walk
-it and assert specific event content. Same assertion-depth
-follow-up flagged for Cairo / Cardano / Flow / Fuel / PolkaVM /
-Miden / TON / Circom / Leo / WASM/wazero / Shell. Adding the Nim
-trace-reader as a Rust dev-dep is the cross-cutting blocker.
+**Closed for Wasmi in the follow-up commit.**  The audit suite now
+opens the produced `.ct` container through
+`NimTraceReaderHandle`, checks the top-level `add` call's args and
+return value, and checks that a cheap `unreachable` trap is readable
+as an error event.  The same assertion-depth follow-up remains open
+for sibling recorders listed in `/tmp/isonim-migration.txt`; this
+Wasmi item no longer blocks on it.
 
 ### H. Multi-stream IO event metadata collapse
 
