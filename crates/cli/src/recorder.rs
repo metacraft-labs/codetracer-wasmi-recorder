@@ -103,15 +103,9 @@ impl WasmiRecorder {
             | TraceEventsFileFormat::Ctfs => "trace.bin",
         };
         let events_path = out_dir.join(events_filename);
-        let metadata_path = out_dir.join("trace_metadata.json");
-        let paths_path = out_dir.join("trace_paths.json");
 
         TraceWriterTrait::begin_writing_trace_events(&mut *writer, &events_path)
             .map_err(|e| anyhow!("begin_writing_trace_events: {e}"))?;
-        TraceWriterTrait::begin_writing_trace_metadata(&mut *writer, &metadata_path)
-            .map_err(|e| anyhow!("begin_writing_trace_metadata: {e}"))?;
-        TraceWriterTrait::begin_writing_trace_paths(&mut *writer, &paths_path)
-            .map_err(|e| anyhow!("begin_writing_trace_paths: {e}"))?;
 
         // Open the trace at the synthetic top-level location.  Mirrors
         // PolkaVM 1.55 step-7.
@@ -128,17 +122,14 @@ impl WasmiRecorder {
     pub fn finish(mut self) -> Result<(), AnyhowError> {
         TraceWriterTrait::finish_writing_trace_events(&mut *self.writer)
             .map_err(|e| anyhow!("finish_writing_trace_events: {e}"))?;
-        TraceWriterTrait::finish_writing_trace_metadata(&mut *self.writer)
-            .map_err(|e| anyhow!("finish_writing_trace_metadata: {e}"))?;
-        TraceWriterTrait::finish_writing_trace_paths(&mut *self.writer)
-            .map_err(|e| anyhow!("finish_writing_trace_paths: {e}"))?;
+        self.writer
+            .write_meta_dat("codetracer-wasmi-recorder")
+            .map_err(|e| anyhow!("write_meta_dat: {e}"))?;
         // For the Nim multi-stream backend `close()` is the step that
-        // actually serialises the `.ct` container to disk — without it
-        // the trace directory ends up containing only the JSON sidecars
-        // (or, depending on the streaming-encoder state, can be left
-        // empty altogether).  PolkaVM 1.55 / Miden 1.56 / TON 1.57
-        // sibling recorders all chain `close()` after the three
-        // `finish_writing_*` calls; we mirror that ordering here.
+        // actually serialises the `.ct` container to disk.  PolkaVM 1.55
+        // / Miden 1.56 / TON 1.57 sibling recorders all chain `close()`
+        // after `finish_writing_trace_events` + `write_meta_dat`; we
+        // mirror that ordering here.
         TraceWriterTrait::close(&mut *self.writer)
             .map_err(|e| anyhow!("close: {e}"))?;
         Ok(())
