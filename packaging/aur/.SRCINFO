@@ -1,0 +1,17 @@
+pkgbase = codetracer-wasmi-recorder
+	pkgdesc = CodeTracer recorder for WebAssembly modules (wasmi interpreter)
+	pkgver = 0.44.0
+	pkgrel = 1
+	url = https://github.com/metacraft-labs/codetracer-wasmi-recorder
+	arch = x86_64
+	arch = aarch64
+	license = MIT/Apache-2.0
+	makedepends = rust
+	makedepends = cargo
+	depends = glibc
+	depends = zstd
+	provides = wasmi_cli
+	source = codetracer-wasmi-recorder-0.44.0.tar.gz::https://github.com/metacraft-labs/codetracer-wasmi-recorder/archive/refs/tags/v0.44.0.tar.gz
+	sha256sums = REPLACE_AT_PUBLISH_TIME_source
+
+pkgname = codetracer-wasmi-recorder

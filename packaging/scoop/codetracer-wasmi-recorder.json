@@ -1,0 +1,23 @@
+{
+  "version": "0.44.0",
+  "description": "CodeTracer recorder for WebAssembly modules (wasmi interpreter)",
+  "homepage": "https://github.com/metacraft-labs/codetracer-wasmi-recorder",
+  "license": "MIT/Apache-2.0",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/metacraft-labs/codetracer-wasmi-recorder/releases/download/v0.44.0/codetracer-wasmi-recorder-0.44.0-windows-x86_64.zip",
+      "hash": "REPLACE_AT_PUBLISH_TIME_windows_x86_64"
+    }
+  },
+  "bin": "wasmi_cli.exe",
+  "checkver": {
+    "github": "https://github.com/metacraft-labs/codetracer-wasmi-recorder"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/metacraft-labs/codetracer-wasmi-recorder/releases/download/v$version/codetracer-wasmi-recorder-$version-windows-x86_64.zip"
+      }
+    }
+  }
+}
