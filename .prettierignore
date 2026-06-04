@@ -1,0 +1,6 @@
+.github/workflows/publish-aur.yml
+.github/workflows/publish-chocolatey.yml
+.github/workflows/publish-deb.yml
+.github/workflows/publish-homebrew.yml
+.github/workflows/publish-rpm.yml
+.github/workflows/publish-scoop.yml
