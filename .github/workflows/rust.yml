@@ -247,6 +247,26 @@ jobs:
           # if -crt-static is set).  The target's std must be on
           # disk for the build to find `core`.
           targets: x86_64-unknown-linux-musl
+
+      - name: Install musl C/C++ toolchain
+        # libfuzzer-sys's build.rs uses cc-rs to compile
+        # libfuzzer's C++ runtime, which looks up
+        # x86_64-linux-musl-g++.  The musl-tools package only
+        # ships musl-gcc; install the multi-arch cross compiler
+        # so cc-rs can resolve the musl C++ frontend too.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools musl-dev g++-x86-64-linux-gnu
+          # Provide musl-g++ as a symlink to the host g++ -- the
+          # musl libc target only needs a C++ frontend that
+          # understands the musl-gcc include / link paths; the
+          # libfuzzer-sys cc-rs build will pass -target via the
+          # rustc-injected CFLAGS.
+          if ! command -v x86_64-linux-musl-g++ >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v musl-gcc)" /usr/local/bin/x86_64-linux-musl-gcc
+            sudo ln -sf "$(command -v g++)" /usr/local/bin/x86_64-linux-musl-g++
+          fi
+
       - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
