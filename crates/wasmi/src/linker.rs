@@ -298,7 +298,7 @@ impl<T> Definition<T> {
     ///
     /// - This allocates a new [`Func`] on the `ctx` if it is a [`Linker`]
     ///   defined host function.
-    /// - This unifies handling of [`Definition::Extern(Extern::Func)`] and
+    /// - This unifies handling of `Definition::Extern(Extern::Func)` and
     ///   [`Definition::HostFunc`].
     pub fn as_func(&self, mut ctx: impl AsContextMut<Data = T>) -> Option<Func> {
         match self {
