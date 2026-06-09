@@ -213,10 +213,13 @@ jobs:
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
       - name: Install cargo-udeps
-        run: |
-          # Note: We use `|| true` because cargo install returns an error
-          #       if cargo-udeps was already installed on the CI runner.
-          cargo install --locked cargo-udeps || true
+        # Prebuilt binary -- the latest cargo-udeps source pulls in
+        # transitive crates that need rust 1.91+ to compile, but this
+        # job runs on the pinned 1.88 nightly to keep the GHA cache
+        # stable.
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-udeps
       - name: Check uDeps
         run: cargo udeps --all-targets
 
@@ -241,10 +244,12 @@ jobs:
             ${{ github.workspace }}/target
           prefix-key: fuzz-${{ matrix.fuzz_target }}
       - name: Install `cargo-fuzz`
-        run: |
-          # Note: We use `|| true` because cargo install returns an error
-          #       if cargo-fuzz was already installed on the CI runner.
-          cargo install cargo-fuzz || true
+        # Prebuilt binary -- the latest cargo-fuzz source pulls in
+        # zmij, which uses `core::hint::select_unpredictable`
+        # (stabilised in 1.91), but this job runs on the 1.88 nightly.
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-fuzz
       - name: Set Fuzzing Features
         run: |
           FEATURES=""
@@ -284,10 +289,12 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install cargo-nextest
-        run: |
-          # Note: We use `|| true` because cargo install returns an error
-          #       if cargo-nextest was already installed on the CI runner.
-          cargo install --locked cargo-nextest || true
+        # Use prebuilt binary so the host rustc version does not have to
+        # satisfy cargo-nextest's MSRV (currently 1.91+, while the pinned
+        # nightly here is 1.88 to keep the GHA cache stable).
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Miri (setup)
         run: cargo miri setup --target x86_64-unknown-linux-gnu --lib --workspace --locked
       - name: Miri (--lib)
@@ -310,10 +317,9 @@ jobs:
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install cargo-nextest
-        run: |
-          # Note: We use `|| true` because cargo install returns an error
-          #       if cargo-nextest was already installed on the CI runner.
-          cargo install --locked cargo-nextest || true
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Miri (setup)
         run: cargo miri setup --target x86_64-unknown-linux-gnu --locked
       - name: Miri - Wasm Spec Testsuite (store)
