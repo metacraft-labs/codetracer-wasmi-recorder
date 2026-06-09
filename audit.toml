@@ -1,0 +1,38 @@
+# Cargo audit configuration.
+#
+# Ignored advisories: all wasmtime / wasi-common / wiggle vulnerabilities
+# below are pinned at version 31.0.0 by wasmi_fuzz's optional `wasmtime`
+# dependency.  The runtime that ships with `cargo run wasmi_cli` does not
+# include any of these crates; they are only compiled when the
+# `wasmi_fuzz --features differential` build runs the differential fuzz
+# oracle that compares wasmi's interpreter behaviour against Wasmtime.
+#
+# We hold the version at 31 because wasmtime 36+ removed
+# `wiggle::anyhow` and `wasi_common::Error::trap`, both of which the
+# `crates/wasi` adapter relies on through the `apply_wasi_definitions!`
+# macro.  Bumping requires a non-trivial rewrite of the WASI/wiggle
+# integration; tracked separately and out of scope for the CI
+# stabilisation pass.  The advisories therefore have NO production
+# exposure: the differential fuzz oracle is a developer-only tool.
+[advisories]
+ignore = [
+    "RUSTSEC-2024-0436",
+    "RUSTSEC-2025-0046",
+    "RUSTSEC-2025-0118",
+    "RUSTSEC-2026-0006",
+    "RUSTSEC-2026-0020",
+    "RUSTSEC-2026-0021",
+    "RUSTSEC-2026-0085",
+    "RUSTSEC-2026-0086",
+    "RUSTSEC-2026-0087",
+    "RUSTSEC-2026-0088",
+    "RUSTSEC-2026-0089",
+    "RUSTSEC-2026-0091",
+    "RUSTSEC-2026-0092",
+    "RUSTSEC-2026-0093",
+    "RUSTSEC-2026-0094",
+    "RUSTSEC-2026-0095",
+    "RUSTSEC-2026-0096",
+    "RUSTSEC-2026-0097",
+    "RUSTSEC-2026-0114",
+]

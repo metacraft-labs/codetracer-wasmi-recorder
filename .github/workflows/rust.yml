@@ -200,6 +200,11 @@ jobs:
           #       if cargo-audit was already installed on the CI runner.
           cargo install cargo-audit || true
       - name: Check Audit
+        # `cargo audit` picks up `audit.toml` from the workspace root
+        # automatically -- see the file for the per-advisory rationale
+        # (all current ignores are wasmtime 31 CVEs reachable only via
+        # the developer-only differential fuzz oracle, which is not
+        # part of the runtime).
         run: cargo audit
 
   udeps:
