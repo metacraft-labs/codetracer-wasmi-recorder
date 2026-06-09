@@ -18,10 +18,11 @@ jobs:
         - name: Checkout Submodules
           run: git submodule update --init --recursive
         - name: Install cargo-nextest
-          run:
-            # Note: We use `|| true` because cargo install returns an error
-            #       if cargo-nextest was already installed on the CI runner.
-            cargo install --locked cargo-nextest || true
+          # Prebuilt binary -- the latest cargo-nextest source needs
+          # rust 1.91+ but this job runs on the pinned nightly 1.88.
+          uses: taiki-e/install-action@v2
+          with:
+            tool: cargo-nextest
         - name: Miri Testing - Wasm Spec Testsuite
           env:
             # Debug assertions are checked in the normal test jobs.
