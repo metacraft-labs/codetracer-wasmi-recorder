@@ -292,8 +292,12 @@ jobs:
           # libc; the x86_64-unknown-linux-musl target defaults to
           # ``-C target-feature=+crt-static``.  Override per-build via
           # RUSTFLAGS so cargo-fuzz produces a sanitizer-compatible
-          # binary.
-          echo "RUSTFLAGS=-C target-feature=-crt-static" >> $GITHUB_ENV
+          # binary.  Also link libm explicitly: the ASan runtime
+          # archive (librustc-nightly_rt.asan.a) references
+          # `signgam@@GLIBC_2.2.5` from libm but the default link
+          # line for the musl target uses `-nodefaultlibs` so libm
+          # isn't pulled in transitively.
+          echo "RUSTFLAGS=-C target-feature=-crt-static -C link-arg=-lm" >> $GITHUB_ENV
       - name: Check Fuzzing Target
         run: cargo fuzz check ${{ matrix.fuzz_target }} $FEATURES
       - name: Build Fuzzing Target
