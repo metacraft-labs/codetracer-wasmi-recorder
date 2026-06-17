@@ -8,3 +8,6 @@ spec/target
 **/fuzz/artifacts/
 **/fuzz/crash-inputs/
 **/fuzz/Cargo.lock
+
+# reprobuild build artifacts
+.repro/
