@@ -1,0 +1,9 @@
+schema = "reprobuild.solved-graph-lock.v2"
+
+[lock]
+platform = "amd64-linux"
+optimal = false
+inputs_digest = "fnv1a64:c6dd0148c427b414"
+variants = []
+packages = [{ name = "capnp", version = "1.0.0", source = "capnp" }, { name = "cargo", version = "1.83.0", source = "cargo" }, { name = "codetracer_wasmi_recorder", version = "0.1.0", source = "codetracer_wasmi_recorder" }, { name = "nim", version = "2.2.0", source = "nim" }, { name = "nimble", version = "1.0.0", source = "nimble" }, { name = "pkg-config", version = "1.0.0", source = "pkg-config" }, { name = "rustc", version = "1.83.0", source = "rustc" }, { name = "zstd", version = "1.0.0", source = "zstd" }]
+deps = [{ name = "codetracer-wasmi-recorder", path = ".", coord_kind = "vcs", url = "https://github.com/metacraft-labs/codetracer-wasmi-recorder", ref = "mcr-stege0-and-fixes", revision = "c83b0152f82c66d7ae92f6f1e9133996f6836944", integrity = "git-sha1:c83b0152f82c66d7ae92f6f1e9133996f6836944", version = "", visibility = "public", participation = "", depends = "", groups = "" }]
