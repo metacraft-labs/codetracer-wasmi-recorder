@@ -32,10 +32,18 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error as AnyhowError, Result};
 use codetracer_trace_types::{
-    EventLogKind, Line, TypeKind, TypeRecord, TypeSpecificInfo, ValueRecord, NONE_VALUE,
+    EventLogKind,
+    Line,
+    TypeKind,
+    TypeRecord,
+    TypeSpecificInfo,
+    ValueRecord,
+    NONE_VALUE,
 };
 use codetracer_trace_writer_nim::{
-    create_trace_writer, TraceEventsFileFormat, TraceWriter as TraceWriterTrait,
+    create_trace_writer,
+    TraceEventsFileFormat,
+    TraceWriter as TraceWriterTrait,
 };
 use wasmi::{Error as WasmiError, FuncType, Val};
 
@@ -109,7 +117,11 @@ impl WasmiRecorder {
 
         // Open the trace at the synthetic top-level location.  Mirrors
         // PolkaVM 1.55 step-7.
-        TraceWriterTrait::start(&mut *writer, Path::new(WASMI_VIRTUAL_PATH), WASMI_VIRTUAL_LINE);
+        TraceWriterTrait::start(
+            &mut *writer,
+            Path::new(WASMI_VIRTUAL_PATH),
+            WASMI_VIRTUAL_LINE,
+        );
 
         Ok(Self { writer, out_dir })
     }
@@ -130,8 +142,7 @@ impl WasmiRecorder {
         // / Miden 1.56 / TON 1.57 sibling recorders all chain `close()`
         // after `finish_writing_trace_events` + `write_meta_dat`; we
         // mirror that ordering here.
-        TraceWriterTrait::close(&mut *self.writer)
-            .map_err(|e| anyhow!("close: {e}"))?;
+        TraceWriterTrait::close(&mut *self.writer).map_err(|e| anyhow!("close: {e}"))?;
         Ok(())
     }
 
@@ -151,12 +162,7 @@ impl WasmiRecorder {
     /// support lands (out of scope for this audit), the names will be
     /// upgraded by reading `DW_TAG_formal_parameter` ranges keyed on the
     /// wasm function index.
-    pub fn register_top_level_call(
-        &mut self,
-        func_name: &str,
-        func_ty: &FuncType,
-        args: &[Val],
-    ) {
+    pub fn register_top_level_call(&mut self, func_name: &str, func_ty: &FuncType, args: &[Val]) {
         // Make sure the function-id is known to the writer.  We treat the
         // entry-point as `<func_name> @ <virtual> : 1` because wasmi has not
         // resolved the actual `.wasm` module's source path yet.  Empty

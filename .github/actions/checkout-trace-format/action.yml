@@ -1,20 +1,28 @@
-name: Checkout codetracer-trace-format sibling
-description: Clone codetracer-trace-format next to this repository for workspace path dependencies.
+name: Checkout CodeTracer trace-format siblings
+description: Clone CodeTracer trace-format repositories next to this repository for workspace path dependencies.
 runs:
   using: composite
   steps:
-    - name: Clone codetracer-trace-format
+    - name: Clone trace-format siblings
       shell: bash
       run: |
         set -euo pipefail
 
-        remote=https://github.com/metacraft-labs/codetracer-trace-format.git
         trace_ref="${GITHUB_BASE_REF:-${GITHUB_REF_NAME:-dev}}"
 
-        if ! git ls-remote --exit-code --heads "$remote" "$trace_ref" >/dev/null 2>&1; then
-          trace_ref=dev
-        fi
+        clone_sibling() {
+          repo="$1"
+          remote="https://github.com/metacraft-labs/${repo}.git"
+          ref="$trace_ref"
 
-        target="${GITHUB_WORKSPACE}/../codetracer-trace-format"
-        rm -rf "$target"
-        git clone --depth 1 --branch "$trace_ref" "$remote" "$target"
+          if ! git ls-remote --exit-code --heads "$remote" "$ref" >/dev/null 2>&1; then
+            ref=dev
+          fi
+
+          target="${GITHUB_WORKSPACE}/../${repo}"
+          rm -rf "$target"
+          git clone --depth 1 --branch "$ref" "$remote" "$target"
+        }
+
+        clone_sibling codetracer-trace-format
+        clone_sibling codetracer-trace-format-nim

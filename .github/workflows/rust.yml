@@ -110,7 +110,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/checkout-trace-format
-      - uses: dtolnay/rust-toolchain@1.83.0
+      - uses: dtolnay/rust-toolchain@1.85.0
       - uses: Swatinem/rust-cache@v2
       - run: >-
           cargo check
@@ -135,6 +135,12 @@ jobs:
         with:
           submodules: true
       - uses: ./.github/actions/checkout-trace-format
+      - name: Add macOS POSIX tools
+        if: runner.os == 'macOS'
+        run: |
+          echo "$(nix build --no-link --print-out-paths nixpkgs#coreutils)/bin" >> "$GITHUB_PATH"
+          echo "$(nix build --no-link --print-out-paths nixpkgs#gnugrep)/bin" >> "$GITHUB_PATH"
+          echo "$(nix build --no-link --print-out-paths nixpkgs#gnused)/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@stable
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
