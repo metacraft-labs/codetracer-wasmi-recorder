@@ -34,6 +34,10 @@ runs:
         set -euo pipefail
 
         if [ "${RUNNER_OS}" = "macOS" ]; then
+          echo "/usr/bin" >> "${GITHUB_PATH}"
+          echo "/bin" >> "${GITHUB_PATH}"
+          echo "/usr/sbin" >> "${GITHUB_PATH}"
+          echo "/sbin" >> "${GITHUB_PATH}"
           export PATH="/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
         fi
 
@@ -59,19 +63,31 @@ runs:
         }
 
         ensure_macos_c_compiler() {
-          if [ "${RUNNER_OS}" != "macOS" ] || command -v cc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
+          if [ "${RUNNER_OS}" != "macOS" ]; then
+            return
+          fi
+
+          if command -v cc >/dev/null 2>&1; then
+            echo "CC=$(command -v cc)" >> "${GITHUB_ENV}"
+            return
+          fi
+
+          if command -v clang >/dev/null 2>&1; then
+            echo "CC=$(command -v clang)" >> "${GITHUB_ENV}"
             return
           fi
 
           if command -v nix >/dev/null 2>&1; then
             clang_bin="$(nix build --no-link --print-out-paths nixpkgs#clang)/bin"
             echo "${clang_bin}" >> "${GITHUB_PATH}"
+            echo "CC=${clang_bin}/clang" >> "${GITHUB_ENV}"
             export PATH="${clang_bin}:${PATH}"
             export CC="${clang_bin}/clang"
           elif command -v brew >/dev/null 2>&1; then
             brew install llvm
             clang_bin="$(brew --prefix llvm)/bin"
             echo "${clang_bin}" >> "${GITHUB_PATH}"
+            echo "CC=${clang_bin}/clang" >> "${GITHUB_ENV}"
             export PATH="${clang_bin}:${PATH}"
             export CC="${clang_bin}/clang"
           else
