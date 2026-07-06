@@ -26,3 +26,123 @@ runs:
 
         clone_sibling codetracer-trace-format
         clone_sibling codetracer-trace-format-nim
+
+    - name: Install trace-format build tools (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        apt_updated=0
+        apt_install() {
+          if ! command -v apt-get >/dev/null 2>&1; then
+            echo "::error::apt-get is required to install $* on this Linux runner"
+            exit 1
+          fi
+          if [ "${apt_updated}" -eq 0 ]; then
+            if command -v sudo >/dev/null 2>&1; then
+              sudo apt-get update
+            else
+              apt-get update
+            fi
+            apt_updated=1
+          fi
+          if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get install -y "$@"
+          else
+            apt-get install -y "$@"
+          fi
+        }
+
+        nim_version=2.2.10
+
+        if ! command -v curl >/dev/null 2>&1; then
+          case "${RUNNER_OS}" in
+            Linux) apt_install curl ca-certificates ;;
+            macOS)
+              echo "::error::curl is required to install Nim on macOS"
+              exit 1
+              ;;
+          esac
+        fi
+
+        if ! command -v nim >/dev/null 2>&1 || ! nim --version | grep -q "Version ${nim_version}"; then
+          export CHOOSENIM_CHOOSE_VERSION="${nim_version}"
+          curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+        fi
+
+        echo "${HOME}/.nimble/bin" >> "${GITHUB_PATH}"
+        export PATH="${HOME}/.nimble/bin:${PATH}"
+
+        if ! command -v capnp >/dev/null 2>&1; then
+          case "${RUNNER_OS}" in
+            Linux)
+              apt_install capnproto
+              ;;
+            macOS)
+              if command -v nix >/dev/null 2>&1; then
+                capnp_path="$(nix build --no-link --print-out-paths nixpkgs#capnproto)/bin"
+                echo "${capnp_path}" >> "${GITHUB_PATH}"
+                export PATH="${capnp_path}:${PATH}"
+              elif command -v brew >/dev/null 2>&1; then
+                brew install capnp
+              else
+                echo "::error::capnp is required, but this macOS runner has neither nix nor brew"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::unsupported Unix runner OS: ${RUNNER_OS}"
+              exit 1
+              ;;
+          esac
+        fi
+
+        nim --version
+        nimble --version
+        capnp --version
+
+    - name: Install trace-format build tools (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        $nimVersion = "2.2.10"
+        $needsNim = -not (Get-Command nim.exe -ErrorAction SilentlyContinue)
+        if (-not $needsNim) {
+          $needsNim = -not ((nim --version) -match "Version $nimVersion")
+        }
+
+        if ($needsNim) {
+          $nimRoot = Join-Path $env:RUNNER_TEMP "nim-$nimVersion-$env:GITHUB_RUN_ID"
+          $nimZip = Join-Path $env:RUNNER_TEMP "nim-$nimVersion.zip"
+          Invoke-WebRequest "https://nim-lang.org/download/nim-$($nimVersion)_x64.zip" -OutFile $nimZip
+          New-Item -ItemType Directory -Path $nimRoot | Out-Null
+          Expand-Archive $nimZip -DestinationPath $nimRoot -Force
+          $nimExe = Get-ChildItem $nimRoot -Recurse -Filter nim.exe |
+            Where-Object { $_.Directory.Name -eq "bin" } |
+            Select-Object -First 1
+          if (-not $nimExe) {
+            throw "Could not find nim.exe after extracting $nimZip"
+          }
+          $nimBin = $nimExe.Directory.FullName
+          Add-Content $env:GITHUB_PATH $nimBin
+          $env:Path = "$nimBin;$env:Path"
+        }
+
+        $nimbleBin = Join-Path $env:USERPROFILE ".nimble\bin"
+        Add-Content $env:GITHUB_PATH $nimbleBin
+        $env:Path = "$nimbleBin;$env:Path"
+
+        if (-not (Get-Command capnp.exe -ErrorAction SilentlyContinue)) {
+          if (Get-Command choco.exe -ErrorAction SilentlyContinue) {
+            choco install capnproto -y --no-progress
+          } else {
+            throw "capnp is required, but this Windows runner has neither capnp.exe nor choco.exe on PATH"
+          }
+        }
+
+        nim --version
+        nimble --version
+        capnp --version
