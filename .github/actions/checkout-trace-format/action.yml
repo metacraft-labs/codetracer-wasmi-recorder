@@ -54,6 +54,28 @@ runs:
           fi
         }
 
+        ensure_macos_c_compiler() {
+          if [ "${RUNNER_OS}" != "macOS" ] || command -v cc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
+            return
+          fi
+
+          if command -v nix >/dev/null 2>&1; then
+            clang_bin="$(nix build --no-link --print-out-paths nixpkgs#clang)/bin"
+            echo "${clang_bin}" >> "${GITHUB_PATH}"
+            export PATH="${clang_bin}:${PATH}"
+            export CC="${clang_bin}/clang"
+          elif command -v brew >/dev/null 2>&1; then
+            brew install llvm
+            clang_bin="$(brew --prefix llvm)/bin"
+            echo "${clang_bin}" >> "${GITHUB_PATH}"
+            export PATH="${clang_bin}:${PATH}"
+            export CC="${clang_bin}/clang"
+          else
+            echo "::error::choosenim requires a C compiler, but this macOS runner has neither clang, nix, nor brew"
+            exit 1
+          fi
+        }
+
         nim_version=2.2.10
 
         if ! command -v curl >/dev/null 2>&1; then
@@ -65,6 +87,8 @@ runs:
               ;;
           esac
         fi
+
+        ensure_macos_c_compiler
 
         if ! command -v nim >/dev/null 2>&1 || ! nim --version | grep -q "Version ${nim_version}"; then
           export CHOOSENIM_CHOOSE_VERSION="${nim_version}"
