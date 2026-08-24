@@ -107,6 +107,22 @@ package codetracer_wasmi_recorder:
     when not defined(windows):
       "pkg-config"
 
+    # Chocolatey — `choco pack` / `choco push` in this repo's
+    # .github/workflows/publish-chocolatey.yml. Declared here rather than
+    # installed on the runner: a tool this repo needs is this repo's
+    # dependency, and leaving it to the machine means a developer and CI each
+    # get whatever their box happens to carry.
+    #
+    # BOTH halves below are load-bearing and they answer different questions.
+    # `platforms: [windows]` on the package (reprobuild's catalog) says where
+    # chocolatey CAN exist; this guard says whether THIS recipe needs it here.
+    # No package-side declaration can answer the second — which is why Nix
+    # keeps meta.platforms beside lib.optionals, and Spack requires() beside
+    # depends_on(when=). Do not delete the guard on the grounds that the
+    # package now declares its platform.
+    when defined(windows):
+      "chocolatey"
+
   # The shipping binary — the ``wasmi_cli`` workspace member. The
   # per-app cargo build edge is emitted in the ``build:`` block below.
   executable wasmiCli:
