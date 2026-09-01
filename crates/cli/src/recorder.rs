@@ -7,16 +7,16 @@
 //!
 //! Audit scope (this iteration — see AUDIT-CTFS-2026-05.md):
 //!   * Default-Ctfs CLI scaffold via `--trace-out` + `--trace-format` (a).
-//!   * Top-level [`wasmi::Func::call`] boundary as a [`register_call`]
+//!   * Top-level [`wasmi::Func::call`] boundary as a `register_call`
 //!     site (b).
 //!   * Wasmi function-signature `&[Val]` parameters staged via
-//!     [`TraceWriter::arg`] as `arg{i}`-named call-args (c).
+//!     `TraceWriter::arg` as `arg{i}`-named call-args (c).
 //!   * `wasmi::Error` (host trap, validation error, OOG, ...) routed through
-//!     [`register_special_event`] with `EventLogKind::Error` and metadata
+//!     `register_special_event` with `EventLogKind::Error` and metadata
 //!     `wasmi_trap` (d / i).
 //!
 //! Out of scope (deferred to follow-up audits):
-//!   * Per-instruction / per-source-line [`register_step`] from the wasmi
+//!   * Per-instruction / per-source-line `register_step` from the wasmi
 //!     interpreter loop.  Closing this needs a hook in the executor's
 //!     instruction-dispatch loop (`crates/wasmi/src/engine/executor/`).
 //!   * Intra-program function-call boundaries (`call` / `call_indirect`
@@ -24,7 +24,7 @@
 //!   * DWARF-driven argument names (currently we use positional `arg0..argN`
 //!     placeholders, mirroring Miden 1.56 stack[0..3] -> s0..s3).
 //!   * WASI host-fn output capture (`fd_write`, `fd_read`) routed through
-//!     [`register_special_event`] with `EventLogKind::Write` /
+//!     `register_special_event` with `EventLogKind::Write` /
 //!     `EventLogKind::Read`.
 //!   * Wasm threads proposal (wasmi does not currently support it).
 
@@ -32,10 +32,18 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Error as AnyhowError, Result};
 use codetracer_trace_types::{
-    EventLogKind, Line, TypeKind, TypeRecord, TypeSpecificInfo, ValueRecord, NONE_VALUE,
+    EventLogKind,
+    Line,
+    TypeKind,
+    TypeRecord,
+    TypeSpecificInfo,
+    ValueRecord,
+    NONE_VALUE,
 };
 use codetracer_trace_writer_nim::{
-    create_trace_writer, TraceEventsFileFormat, TraceWriter as TraceWriterTrait,
+    create_trace_writer,
+    TraceEventsFileFormat,
+    TraceWriter as TraceWriterTrait,
 };
 use wasmi::{Error as WasmiError, FuncType, Val};
 
@@ -109,7 +117,11 @@ impl WasmiRecorder {
 
         // Open the trace at the synthetic top-level location.  Mirrors
         // PolkaVM 1.55 step-7.
-        TraceWriterTrait::start(&mut *writer, Path::new(WASMI_VIRTUAL_PATH), WASMI_VIRTUAL_LINE);
+        TraceWriterTrait::start(
+            &mut *writer,
+            Path::new(WASMI_VIRTUAL_PATH),
+            WASMI_VIRTUAL_LINE,
+        );
 
         Ok(Self { writer, out_dir })
     }
@@ -130,8 +142,7 @@ impl WasmiRecorder {
         // / Miden 1.56 / TON 1.57 sibling recorders all chain `close()`
         // after `finish_writing_trace_events` + `write_meta_dat`; we
         // mirror that ordering here.
-        TraceWriterTrait::close(&mut *self.writer)
-            .map_err(|e| anyhow!("close: {e}"))?;
+        TraceWriterTrait::close(&mut *self.writer).map_err(|e| anyhow!("close: {e}"))?;
         Ok(())
     }
 
@@ -151,12 +162,7 @@ impl WasmiRecorder {
     /// support lands (out of scope for this audit), the names will be
     /// upgraded by reading `DW_TAG_formal_parameter` ranges keyed on the
     /// wasm function index.
-    pub fn register_top_level_call(
-        &mut self,
-        func_name: &str,
-        func_ty: &FuncType,
-        args: &[Val],
-    ) {
+    pub fn register_top_level_call(&mut self, func_name: &str, func_ty: &FuncType, args: &[Val]) {
         // Make sure the function-id is known to the writer.  We treat the
         // entry-point as `<func_name> @ <virtual> : 1` because wasmi has not
         // resolved the actual `.wasm` module's source path yet.  Empty
@@ -235,7 +241,7 @@ impl WasmiRecorder {
     }
 
     /// Decode a wasmi [`Val`] into a [`ValueRecord`] suitable for
-    /// [`TraceWriter::register_return`].
+    /// `TraceWriter::register_return`.
     ///
     /// `register_return` does not carry a typed parameter slot, so we use
     /// the value-only conversion here (vs. the param-typed path used by
@@ -360,10 +366,11 @@ fn wasmi_val_to_value_record_inner(
 /// rather than clap's default `binary-v0` kebab-case, mirroring the
 /// PolkaVM 1.55 / Miden 1.56 / TON 1.57 sibling CLI surfaces that all
 /// use snake_case for their format identifiers.
-#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
 #[clap(rename_all = "snake_case")]
 pub enum CliTraceFormat {
     /// Canonical CodeTracer multi-stream container (recommended).
+    #[default]
     Ctfs,
     /// Legacy CBOR + Zstd binary format.
     Binary,
@@ -371,12 +378,6 @@ pub enum CliTraceFormat {
     BinaryV0,
     /// Human-readable JSON (slower; useful for debugging).
     Json,
-}
-
-impl Default for CliTraceFormat {
-    fn default() -> Self {
-        CliTraceFormat::Ctfs
-    }
 }
 
 impl From<CliTraceFormat> for TraceEventsFileFormat {

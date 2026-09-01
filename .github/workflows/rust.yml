@@ -18,9 +18,10 @@ env:
 jobs:
   check:
     name: Build
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown, x86_64-unknown-none
@@ -78,11 +79,12 @@ jobs:
 
   test-asan:
     name: Test (Address Sanitizer)
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -104,10 +106,11 @@ jobs:
 
   min-version:
     name: Check mininum supported Rust version
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.83.0
+      - uses: ./.github/actions/checkout-trace-format
+      - uses: dtolnay/rust-toolchain@1.85.0
       - uses: Swatinem/rust-cache@v2
       - run: >-
           cargo check
@@ -121,7 +124,7 @@ jobs:
       matrix:
         include:
           - os: linux
-            runner: [self-hosted, nixos]
+            runner: ubuntu-24.04
           - os: windows
             runner: [self-hosted, Windows, X64, nixos-equivalent]
           - os: macos
@@ -131,6 +134,13 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
+      - name: Add macOS POSIX tools
+        if: runner.os == 'macOS'
+        run: |
+          echo "$(nix build --no-link --print-out-paths nixpkgs#coreutils)/bin" >> "$GITHUB_PATH"
+          echo "$(nix build --no-link --print-out-paths nixpkgs#gnugrep)/bin" >> "$GITHUB_PATH"
+          echo "$(nix build --no-link --print-out-paths nixpkgs#gnused)/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@stable
       - name: Set up Rust cache
         uses: Swatinem/rust-cache@v2
@@ -153,9 +163,10 @@ jobs:
 
   fmt:
     name: Formatting
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -172,9 +183,10 @@ jobs:
 
   doc:
     name: Documentation
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rust-docs, rust-src
@@ -196,9 +208,10 @@ jobs:
 
   audit:
     name: Audit
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-audit
         run: |
@@ -215,11 +228,12 @@ jobs:
 
   udeps:
     name: uDeps
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -236,7 +250,7 @@ jobs:
 
   fuzz:
     name: Fuzz
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         fuzz_target: ['translate', 'execute', 'differential']
@@ -244,6 +258,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -323,11 +338,12 @@ jobs:
 
   miri:
     name: Miri
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -351,11 +367,12 @@ jobs:
 
   miri-spec:
     name: Miri (spec)
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -377,11 +394,12 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: true
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
@@ -403,7 +421,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: [self-hosted, nixos]
+    runs-on: ubuntu-24.04
     container:
       image: xd009642/tarpaulin:develop-nightly
       options: --security-opt seccomp=unconfined
@@ -413,6 +431,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+      - uses: ./.github/actions/checkout-trace-format
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
