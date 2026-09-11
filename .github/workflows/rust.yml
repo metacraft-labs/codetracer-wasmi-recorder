@@ -439,7 +439,7 @@ jobs:
       - name: Mirror code coverage report to S3 (non-blocking)
         if: always()
         continue-on-error: true
-        uses: metacraft-labs/metacraft-github-actions/mirror-artifacts-s3@main
+        uses: metacraft-labs/metacraft-github-actions/mirror-artifacts-s3@dev
         with:
           path: cobertura.xml
           prefix: code-coverage-report/${{ github.run_id }}
