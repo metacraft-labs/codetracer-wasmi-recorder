@@ -30,9 +30,9 @@ jobs:
         name: refresh codetracer-wasmi-recorder.rb
         environment: homebrew
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Fetch sha256 for each platform binary
+            -   name: Fetch sha256 for each platform binary
                 id: hashes
                 env:
                     VERSION: ${{ inputs.version }}
@@ -45,7 +45,7 @@ jobs:
                         echo "$target=$sha" >> "$GITHUB_OUTPUT"
                     done
 
-            - name: Rewrite formula
+            -   name: Rewrite formula
                 env:
                     VERSION: ${{ inputs.version }}
                     SHA_LINUX_X86_64:   ${{ steps.hashes.outputs.linux-x86_64 }}
@@ -64,7 +64,7 @@ jobs:
                     echo "--- regenerated $f ---"
                     cat "$f"
 
-            - name: Push branch to homebrew tap repo
+            -   name: Push branch to homebrew tap repo
                 env:
                     DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
                     VERSION: ${{ inputs.version }}
@@ -91,7 +91,7 @@ jobs:
                     git push -u origin "$branch"
                     echo "Pushed $branch — open PR at https://github.com/metacraft-labs/homebrew-codetracer/pulls"
 
-            - name: Upload formula artifact (fallback)
+            -   name: Upload formula artifact (fallback)
                 if: always()
                 uses: actions/upload-artifact@v4
                 with:

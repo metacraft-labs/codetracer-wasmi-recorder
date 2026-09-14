@@ -50,16 +50,16 @@ jobs:
         name: rpm / ${{ inputs.arch }}
         environment: rpm
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Install Rust toolchain
+            -   name: Install Rust toolchain
                 uses: dtolnay/rust-toolchain@stable
                 with:
                     targets: |
                         x86_64-unknown-linux-gnu
                         aarch64-unknown-linux-gnu
 
-            - name: Install rpmbuild + cross-compile deps
+            -   name: Install rpmbuild + cross-compile deps
                 run: |
                     sudo apt-get update
                     sudo apt-get install -y rpm xz-utils gnupg
@@ -67,7 +67,7 @@ jobs:
                         sudo apt-get install -y gcc-aarch64-linux-gnu
                     fi
 
-            - name: Build recorder binary
+            -   name: Build recorder binary
                 run: |
                     set -euo pipefail
                     if [[ "${{ inputs.arch }}" == "aarch64" ]]; then
@@ -83,7 +83,7 @@ jobs:
                         echo "binary=$(pwd)/target/release/codetracer-wasmi-recorder" >> "$GITHUB_ENV"
                     fi
 
-            - name: Build .rpm
+            -   name: Build .rpm
                 run: |
                     mkdir -p out
                     bash packaging/rpm/build.sh \
@@ -95,21 +95,21 @@ jobs:
                         codetracer-wasmi-recorder \
                         "${{ inputs.arch }}"
 
-            - name: Import GPG key
+            -   name: Import GPG key
                 if: ${{ inputs.dry_run == false }}
                 uses: crazy-max/ghaction-import-gpg@v6
                 with:
                     gpg_private_key: ${{ secrets.CODETRACER_AUR_GPG_PRIVATE_KEY }}
                     passphrase:      ${{ secrets.CODETRACER_AUR_GPG_PRIVATE_KEY_PASS }}
 
-            - name: Sign .rpm
+            -   name: Sign .rpm
                 if: ${{ inputs.dry_run == false }}
                 run: |
                     set -euo pipefail
                     rpm=$(find out -name "*.rpm" -type f | head -n1)
                     gpg --armor --detach-sign "$rpm"
 
-            - name: Upload .rpm to rpm.codetracer.com (R2)
+            -   name: Upload .rpm to rpm.codetracer.com (R2)
                 if: ${{ inputs.dry_run == false }}
                 env:
                     AWS_ACCESS_KEY_ID:     ${{ secrets.CODETRACER_RPM_BUCKET_ACCESS_KEY_ID }}
@@ -134,7 +134,7 @@ jobs:
                         s3 cp "$asc" "$dest.asc" --checksum-algorithm CRC32
                     echo "Published $dest"
 
-            - name: Upload .rpm artifact
+            -   name: Upload .rpm artifact
                 if: always()
                 uses: actions/upload-artifact@v4
                 with:

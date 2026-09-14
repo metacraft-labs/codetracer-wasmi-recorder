@@ -30,9 +30,9 @@ jobs:
         name: refresh codetracer-wasmi-recorder.json
         environment: scoop
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Fetch sha256 for the windows-x86_64 zip
+            -   name: Fetch sha256 for the windows-x86_64 zip
                 id: hash
                 env:
                     VERSION: ${{ inputs.version }}
@@ -44,7 +44,7 @@ jobs:
                     sha=$(curl -fsSL "$url" | sha256sum | awk '{print $1}')
                     echo "windows-x86_64=$sha" >> "$GITHUB_OUTPUT"
 
-            - name: Rewrite manifest
+            -   name: Rewrite manifest
                 env:
                     VERSION: ${{ inputs.version }}
                     SHA_WINDOWS_X86_64: ${{ steps.hash.outputs.windows-x86_64 }}
@@ -60,7 +60,7 @@ jobs:
                     echo "--- regenerated $f ---"
                     cat "$f"
 
-            - name: Push branch to scoop bucket repo
+            -   name: Push branch to scoop bucket repo
                 env:
                     DEPLOY_KEY: ${{ secrets.SCOOP_BUCKET_DEPLOY_KEY }}
                     VERSION: ${{ inputs.version }}
@@ -88,7 +88,7 @@ jobs:
                     git push -u origin "$branch"
                     echo "Pushed $branch — open PR at https://github.com/metacraft-labs/scoop-codetracer/pulls"
 
-            - name: Upload manifest artifact (fallback)
+            -   name: Upload manifest artifact (fallback)
                 if: always()
                 uses: actions/upload-artifact@v4
                 with:

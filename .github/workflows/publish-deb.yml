@@ -48,16 +48,16 @@ jobs:
         name: deb / ${{ inputs.arch }}
         environment: deb
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Install Rust toolchain
+            -   name: Install Rust toolchain
                 uses: dtolnay/rust-toolchain@stable
                 with:
                     targets: |
                         x86_64-unknown-linux-gnu
                         aarch64-unknown-linux-gnu
 
-            - name: Install dpkg-dev + cross-compile deps
+            -   name: Install dpkg-dev + cross-compile deps
                 run: |
                     sudo apt-get update
                     sudo apt-get install -y dpkg-dev xz-utils gnupg
@@ -65,7 +65,7 @@ jobs:
                         sudo apt-get install -y gcc-aarch64-linux-gnu
                     fi
 
-            - name: Build recorder binary
+            -   name: Build recorder binary
                 run: |
                     set -euo pipefail
                     if [[ "${{ inputs.arch }}" == "arm64" ]]; then
@@ -81,7 +81,7 @@ jobs:
                         echo "binary=target/release/codetracer-wasmi-recorder" >> "$GITHUB_ENV"
                     fi
 
-            - name: Build .deb
+            -   name: Build .deb
                 run: |
                     mkdir -p out
                     bash packaging/deb/build.sh \
@@ -93,21 +93,21 @@ jobs:
                         codetracer-wasmi-recorder \
                         "${{ inputs.arch }}"
 
-            - name: Import GPG key
+            -   name: Import GPG key
                 if: ${{ inputs.dry_run == false }}
                 uses: crazy-max/ghaction-import-gpg@v6
                 with:
                     gpg_private_key: ${{ secrets.CODETRACER_AUR_GPG_PRIVATE_KEY }}
                     passphrase:      ${{ secrets.CODETRACER_AUR_GPG_PRIVATE_KEY_PASS }}
 
-            - name: Sign .deb
+            -   name: Sign .deb
                 if: ${{ inputs.dry_run == false }}
                 run: |
                     set -euo pipefail
                     deb="out/codetracer-wasmi-recorder_${{ inputs.version }}_${{ inputs.arch }}.deb"
                     gpg --armor --detach-sign "$deb"
 
-            - name: Upload .deb to deb.codetracer.com (R2)
+            -   name: Upload .deb to deb.codetracer.com (R2)
                 if: ${{ inputs.dry_run == false }}
                 env:
                     AWS_ACCESS_KEY_ID:     ${{ secrets.CODETRACER_DEB_BUCKET_ACCESS_KEY_ID }}
@@ -135,7 +135,7 @@ jobs:
                         s3 cp "$asc" "$dest.asc" --checksum-algorithm CRC32
                     echo "Published $dest"
 
-            - name: Upload .deb artifact
+            -   name: Upload .deb artifact
                 if: always()
                 uses: actions/upload-artifact@v4
                 with:

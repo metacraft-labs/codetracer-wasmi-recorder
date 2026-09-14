@@ -32,9 +32,9 @@ jobs:
         name: build + push codetracer-wasmi-recorder.<version>.nupkg
         environment: chocolatey
         steps:
-            - uses: actions/checkout@v4
+            -   uses: actions/checkout@v4
 
-            - name: Fetch sha256 for the windows-x86_64 zip
+            -   name: Fetch sha256 for the windows-x86_64 zip
                 id: hash
                 shell: pwsh
                 env:
@@ -48,7 +48,7 @@ jobs:
                     $sha = (Get-FileHash -Path $tmp -Algorithm SHA256).Hash.ToLower()
                     "windows-x86_64=$sha" | Out-File -FilePath $Env:GITHUB_OUTPUT -Append -Encoding ascii
 
-            - name: Rewrite NuSpec + install script
+            -   name: Rewrite NuSpec + install script
                 shell: pwsh
                 env:
                     VERSION: ${{ inputs.version }}
@@ -71,13 +71,13 @@ jobs:
                     Write-Host '--- rewritten install ---'
                     Get-Content $install
 
-            - name: choco pack
+            -   name: choco pack
                 shell: pwsh
                 run: |
                     cd packaging/chocolatey
                     choco pack codetracer-wasmi-recorder.nuspec --out ../../
 
-            - name: choco push
+            -   name: choco push
                 if: ${{ ! inputs.dry_run }}
                 shell: pwsh
                 env:
@@ -92,7 +92,7 @@ jobs:
                         --source https://push.chocolatey.org/ `
                         --api-key $Env:API_KEY
 
-            - name: Upload .nupkg artifact
+            -   name: Upload .nupkg artifact
                 if: always()
                 uses: actions/upload-artifact@v4
                 with:
