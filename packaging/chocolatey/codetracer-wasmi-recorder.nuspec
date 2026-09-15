@@ -21,7 +21,7 @@
     <title>codetracer-wasmi-recorder</title>
     <authors>Metacraft Labs</authors>
     <projectUrl>https://github.com/metacraft-labs/codetracer-wasmi-recorder</projectUrl>
-    <licenseUrl>https://github.com/metacraft-labs/codetracer-wasmi-recorder/blob/main/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/metacraft-labs/codetracer-wasmi-recorder/blob/dev/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/metacraft-labs/codetracer-wasmi-recorder</projectSourceUrl>
     <docsUrl>https://github.com/metacraft-labs/codetracer-wasmi-recorder</docsUrl>
