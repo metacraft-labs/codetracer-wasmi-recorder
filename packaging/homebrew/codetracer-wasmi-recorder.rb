@@ -17,7 +17,7 @@ class CodetracerWasmiRecorder < Formula
   desc "CodeTracer recorder for WebAssembly modules (wasmi interpreter)"
   homepage "https://github.com/metacraft-labs/codetracer-wasmi-recorder"
   version "0.44.0"
-  license "MIT/Apache-2.0"
+  license "Apache-2.0"
 
   on_macos do
     on_arm do

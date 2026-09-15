@@ -19,7 +19,7 @@ recorder:
   homepage: https://github.com/metacraft-labs/codetracer-wasmi-recorder
   repo: metacraft-labs/codetracer-wasmi-recorder
   version: 0.44.0
-  license: "MIT/Apache-2.0"
+  license: "Apache-2.0"
 
 build:
   # The cargo binary target (matches `[[bin]] name = ...` in

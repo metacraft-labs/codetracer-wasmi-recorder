@@ -3,7 +3,7 @@ Version:        0.44.0
 Release:        1%{?dist}
 Summary:        CodeTracer recorder for WebAssembly modules (wasmi interpreter)
 
-License:        MIT/Apache-2.0
+License:        Apache-2.0
 URL:            https://github.com/metacraft-labs/codetracer-wasmi-recorder
 
 # Pre-built binary path is injected at rpmbuild-time by
