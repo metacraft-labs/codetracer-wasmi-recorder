@@ -176,13 +176,17 @@ fn audit_ctfs_reader_sees_add_call_args_and_return() {
     let calls: Vec<_> = (0..reader.call_count())
         .map(|key| reader.call_json(key).expect("read call JSON"))
         .collect();
+    // TWO: the `<toplevel>` frame `start` opens to root the call tree
+    // (`trace-events.md` §"Recorder Integration — Starting a Recording"), and
+    // the call the program itself made inside it. Call 0 is the root, so the
+    // one under test is call 1.
     assert_eq!(
         calls.len(),
-        1,
-        "expected one top-level add call; calls={calls:#?}"
+        2,
+        "expected the <toplevel> root and one add call; calls={calls:#?}"
     );
     let add_call: serde_json::Value =
-        serde_json::from_str(&calls[0]).unwrap_or_else(|e| panic!("invalid call JSON: {e}"));
+        serde_json::from_str(&calls[1]).unwrap_or_else(|e| panic!("invalid call JSON: {e}"));
     let args = add_call["args"]
         .as_array()
         .unwrap_or_else(|| panic!("call args should be an array: {add_call:#}"));
@@ -248,13 +252,17 @@ fn audit_ctfs_reader_sees_trap_error_event() {
     let calls: Vec<_> = (0..reader.call_count())
         .map(|key| reader.call_json(key).expect("read call JSON"))
         .collect();
+    // TWO: the `<toplevel>` frame `start` opens to root the call tree
+    // (`trace-events.md` §"Recorder Integration — Starting a Recording"), and
+    // the call the program itself made inside it. Call 0 is the root, so the
+    // one under test is call 1.
     assert_eq!(
         calls.len(),
-        1,
-        "trap path should close one call frame: {calls:#?}"
+        2,
+        "trap path should close the <toplevel> root and one call frame: {calls:#?}"
     );
     let trap_call: serde_json::Value =
-        serde_json::from_str(&calls[0]).unwrap_or_else(|e| panic!("invalid call JSON: {e}"));
+        serde_json::from_str(&calls[1]).unwrap_or_else(|e| panic!("invalid call JSON: {e}"));
     assert_eq!(
         bytes_from_json_array(&trap_call["return_value"]),
         vec![255],
