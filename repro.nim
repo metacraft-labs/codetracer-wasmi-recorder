@@ -69,6 +69,7 @@
 ## "typed tool provisioning is required for uses declarations".
 
 import repro_project_dsl
+import repro_dsl_stdlib/foreign_env
 
 package codetracer_wasmi_recorder:
   defaultToolProvisioning "path"
@@ -129,6 +130,9 @@ package codetracer_wasmi_recorder:
     name: "wasmi_cli"
 
   devEnv:
+    # Reuse the workspace toolchain until native provisioning replaces the flake.
+    when not defined(windows):
+      useFlakeDevShell("../codetracer-trace-format")
     activity "default"
 
   build:
