@@ -130,9 +130,10 @@ package codetracer_wasmi_recorder:
     name: "wasmi_cli"
 
   devEnv:
-    # Reuse the workspace toolchain until native provisioning replaces the flake.
+    # The repository's own flake dev shell, until native provisioning
+    # replaces it.
     when not defined(windows):
-      useFlakeDevShell("../codetracer-trace-format")
+      useFlakeDevShell()
     activity "default"
 
   build:
