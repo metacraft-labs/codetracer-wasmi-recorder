@@ -163,7 +163,8 @@ pub trait TypedStore {
     ) -> Result<(), Error>;
 
     /// Returns an exclusive reference to [`StoreInner`] and a [`ResourceLimiterRef`].
-    fn store_inner_and_resource_limiter_ref(&mut self) -> (&mut StoreInner, ResourceLimiterRef);
+    fn store_inner_and_resource_limiter_ref(&mut self)
+        -> (&mut StoreInner, ResourceLimiterRef<'_>);
 }
 
 impl<T> TypedStore for Store<T> {
@@ -185,7 +186,9 @@ impl<T> TypedStore for Store<T> {
     }
 
     #[inline]
-    fn store_inner_and_resource_limiter_ref(&mut self) -> (&mut StoreInner, ResourceLimiterRef) {
+    fn store_inner_and_resource_limiter_ref(
+        &mut self,
+    ) -> (&mut StoreInner, ResourceLimiterRef<'_>) {
         <Store<T>>::store_inner_and_resource_limiter_ref(self)
     }
 }
@@ -277,7 +280,7 @@ impl PrunedStore {
     /// Returns an exclusive reference to [`StoreInner`] and a [`ResourceLimiterRef`].
     pub fn store_inner_and_resource_limiter_ref(
         &mut self,
-    ) -> (&mut StoreInner, ResourceLimiterRef) {
+    ) -> (&mut StoreInner, ResourceLimiterRef<'_>) {
         self.typed_store().store_inner_and_resource_limiter_ref()
     }
 
@@ -1223,7 +1226,7 @@ impl<T> Store<T> {
 
     pub(crate) fn store_inner_and_resource_limiter_ref(
         &mut self,
-    ) -> (&mut StoreInner, ResourceLimiterRef) {
+    ) -> (&mut StoreInner, ResourceLimiterRef<'_>) {
         let resource_limiter = ResourceLimiterRef(match &mut self.typed.limiter {
             Some(q) => Some(q.0(&mut self.typed.data)),
             None => None,
@@ -1353,13 +1356,13 @@ pub trait AsContext {
     type Data;
 
     /// Returns the store context that this type provides access to.
-    fn as_context(&self) -> StoreContext<Self::Data>;
+    fn as_context(&self) -> StoreContext<'_, Self::Data>;
 }
 
 /// A trait used to get exclusive access to a [`Store`] in Wasmi.
 pub trait AsContextMut: AsContext {
     /// Returns the store context that this type provides access to.
-    fn as_context_mut(&mut self) -> StoreContextMut<Self::Data>;
+    fn as_context_mut(&mut self) -> StoreContextMut<'_, Self::Data>;
 }
 
 /// A temporary handle to a [`&Store<T>`][`Store`].
