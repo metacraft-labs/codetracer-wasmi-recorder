@@ -105,6 +105,10 @@ impl Display for DisplayValueType {
 }
 
 /// Wasm [`Display`] wrapper for [`Val`].
+///
+/// No translator test displays a whole value at present; the wrapper is kept
+/// beside [`DisplayValueType`] for tests that do.
+#[allow(dead_code)]
 pub struct DisplayValue(Val);
 
 impl From<Val> for DisplayValue {

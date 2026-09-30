@@ -49,8 +49,7 @@ fn main() -> Result<()> {
         .file_name()
         .and_then(|n| n.to_str())
         .unwrap_or("<wasm>");
-    let mut recorder =
-        maybe_open_recorder(program_name, args.trace_out(), args.trace_format())?;
+    let mut recorder = maybe_open_recorder(program_name, args.trace_out(), args.trace_format())?;
 
     // If the recorder is enabled, stage the CLI-provided argv slice as
     // canonical CTFS call args (`arg0..argN-1`) and open the top-level
