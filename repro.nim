@@ -82,6 +82,13 @@ package codetracer_wasmi_recorder:
     # (``rust-version = "1.83"`` in the root ``Cargo.toml``).
     "rustc >=1.83"
     "cargo >=1.83"
+    # C compiler driver — rustc links through `cc`, and build scripts
+    # (cc-rs, the Nim FFI) compile C. Declaring it puts its directory on
+    # every cargo edge's PATH. Windows links with MSVC instead.
+    when defined(linux):
+      "gcc"
+    elif defined(macosx):
+      "clang"
 
     # Nim toolchain — the cross-repo ``codetracer_trace_writer_nim``
     # path-dep crate's build.rs compiles the ``codetracer-trace-format-nim``
@@ -130,9 +137,10 @@ package codetracer_wasmi_recorder:
     name: "wasmi_cli"
 
   devEnv:
-    # Reuse the workspace toolchain until native provisioning replaces the flake.
+    # The repository's own flake dev shell, until native provisioning
+    # replaces it.
     when not defined(windows):
-      useFlakeDevShell("../codetracer-trace-format")
+      useFlakeDevShell()
     activity "default"
 
   build:
