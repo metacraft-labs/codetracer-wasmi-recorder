@@ -1,9 +1,12 @@
-# wasmi recorder
+# wasmi recorder (retired)
 
-A patched version of wasmi: a webassembly(wasm) interpreter. Records traces for [CodeTracer](https://github.com/metacraft-labs/codetracer)
+> **This recorder is retired and no longer maintained.** CodeTracer records
+> WebAssembly — including Stylus contracts — with
+> [codetracer-wasm-recorder](https://github.com/metacraft-labs/codetracer-wasm-recorder),
+> the wazero-based recorder. Use that instead; CodeTracer does not dispatch to,
+> package or test this one, and the repository is kept read-only as a record.
 
-Currently the goal is to support stylus blockchain programs written in Rust or C, which target WASM, however it works in a more general way, that should be usable
-for other usecases and languages targetting WASM.
+A patched version of wasmi: a webassembly(wasm) interpreter that recorded traces for [CodeTracer](https://github.com/metacraft-labs/codetracer).
 
 
 ### Original README below:
